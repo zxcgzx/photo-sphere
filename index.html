@@ -555,7 +555,7 @@
         ];
         
         // 是否使用真实照片（如果设为true，需要确保photos文件夹存在且包含所有照片）
-        const USE_REAL_PHOTOS = flase; // 改为true来使用真实照片
+        const USE_REAL_PHOTOS = true; // 改为true来使用真实照片
         
         // 初始化场景
         function init() {
@@ -780,14 +780,14 @@
             const photo = new THREE.Mesh(photoGeometry, photoMaterial);
             photo.position.z = 3;
             
-            // 组合照片和框架
-            const photoGroup = new THREE.Group();
-            photoGroup.add(frame);
-            photoGroup.add(photo);
+            // 组合照片和框架 - 修改变量名避免冲突
+            const photoContainer = new THREE.Group();
+            photoContainer.add(frame);
+            photoContainer.add(photo);
             
             // 设置位置和朝向
-            photoGroup.position.copy(position);
-            photoGroup.lookAt(0, 0, 0);
+            photoContainer.position.copy(position);
+            photoContainer.lookAt(0, 0, 0);
             
             // 添加发光效果
             const glowGeometry = new THREE.PlaneGeometry(
@@ -802,10 +802,10 @@
             });
             const glow = new THREE.Mesh(glowGeometry, glowMaterial);
             glow.position.z = -1;
-            photoGroup.add(glow);
+            photoContainer.add(glow);
             
             // 存储数据
-            photoGroup.userData = {
+            photoContainer.userData = {
                 index: index,
                 originalPosition: position.clone(),
                 glow: glow,
@@ -817,12 +817,13 @@
                 }
             };
             
-            photoGroup.add(photoGroup);
-            photos.push(photoGroup);
+            // 修正：将照片容器添加到全局photoGroup
+            photoGroup.add(photoContainer);
+            photos.push(photoContainer);
             
             // 添加入场动画
-            photoGroup.scale.set(0, 0, 0);
-            new TWEEN.Tween(photoGroup.scale)
+            photoContainer.scale.set(0, 0, 0);
+            new TWEEN.Tween(photoContainer.scale)
                 .to({ x: 1, y: 1, z: 1 }, 1000)
                 .delay(index * 50)
                 .easing(TWEEN.Easing.Elastic.Out)
@@ -966,7 +967,7 @@
                     loader.load(
                         url,
                         (texture) => {
-                            createPhoto.call(this, texture, index, totalImages);
+                            createPhoto(texture, index, totalImages);
                             photos[photos.length - 1].userData.imageUrl = url;
                             loadedImages++;
                             
@@ -1030,7 +1031,7 @@
                     texture.needsUpdate = true;
                     
                     // 创建照片
-                    createPhoto.call(this, texture, i, totalImages);
+                    createPhoto(texture, i, totalImages);
                     
                     // 更新进度
                     loadedImages++;
