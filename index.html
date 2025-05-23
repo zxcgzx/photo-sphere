@@ -453,6 +453,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
     
     <script>
+        // ========================================
+        // 使用说明：
+        // 1. 测试模式：USE_REAL_PHOTOS = false（默认）
+        //    - 使用彩色数字卡片，无需照片文件
+        //    - 可以立即看到效果
+        // 
+        // 2. 真实照片模式：USE_REAL_PHOTOS = true
+        //    - 需要在同目录创建photos文件夹
+        //    - 放入photo1.jpg到photo53.jpg
+        //    - 如果照片无法加载会跳过
+        // ========================================
+        
         // 配置项
         const config = {
             radius: 250,
@@ -541,6 +553,9 @@
             "photos/photo52.jpg",
             "photos/photo53.jpg"
         ];
+        
+        // 是否使用真实照片（如果设为true，需要确保photos文件夹存在且包含所有照片）
+        const USE_REAL_PHOTOS = false; // 改为true来使用真实照片
         
         // 初始化场景
         function init() {
@@ -794,6 +809,7 @@
                 index: index,
                 originalPosition: position.clone(),
                 glow: glow,
+                imageUrl: texture.image && texture.image.src ? texture.image.src : null,
                 memory: config.memories[index % config.memories.length] || {
                     title: `照片 ${index + 1}`,
                     date: new Date().toLocaleDateString(),
@@ -940,35 +956,95 @@
         
         // 加载图片
         function loadImages() {
-            const totalImages = demoImages.length;
-            let loadedImages = 0;
-            
-            demoImages.forEach((url, index) => {
-                const loader = new THREE.TextureLoader();
-                loader.load(
-                    url,
-                    (texture) => {
-                        createPhoto.call(this, texture, index, totalImages);
-                        loadedImages++;
-                        
-                        const progress = (loadedImages / totalImages) * 100;
-                        document.getElementById('progress-bar').style.width = progress + '%';
-                        
-                        if (loadedImages === totalImages) {
-                            setTimeout(() => {
+            if (USE_REAL_PHOTOS) {
+                // 使用真实照片
+                const totalImages = demoImages.length;
+                let loadedImages = 0;
+                
+                demoImages.forEach((url, index) => {
+                    const loader = new THREE.TextureLoader();
+                    loader.load(
+                        url,
+                        (texture) => {
+                            createPhoto.call(this, texture, index, totalImages);
+                            photos[photos.length - 1].userData.imageUrl = url;
+                            loadedImages++;
+                            
+                            const progress = (loadedImages / totalImages) * 100;
+                            document.getElementById('progress-bar').style.width = progress + '%';
+                            document.getElementById('loading-text').textContent = `正在加载 ${loadedImages}/${totalImages}`;
+                            
+                            if (loadedImages === totalImages) {
+                                setTimeout(() => {
+                                    document.getElementById('loading-screen').style.display = 'none';
+                                }, 1000);
+                            }
+                        },
+                        undefined,
+                        (error) => {
+                            console.error('无法加载图片:', url);
+                            loadedImages++;
+                            
+                            // 即使有错误也继续
+                            const progress = (loadedImages / totalImages) * 100;
+                            document.getElementById('progress-bar').style.width = progress + '%';
+                            
+                            if (loadedImages === totalImages) {
                                 document.getElementById('loading-screen').style.display = 'none';
-                            }, 1000);
+                            }
                         }
-                    },
-                    undefined,
-                    () => {
-                        loadedImages++;
-                        if (loadedImages === totalImages) {
+                    );
+                });
+            } else {
+                // 使用测试图片（不需要外部文件）
+                const totalImages = 30; // 先用30张测试
+                let loadedImages = 0;
+                
+                // 创建渐变色卡片作为临时照片
+                for (let i = 0; i < totalImages; i++) {
+                    // 创建一个canvas作为纹理
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 256;
+                    canvas.height = 256;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 创建渐变背景
+                    const gradient = ctx.createLinearGradient(0, 0, 256, 256);
+                    const hue = (i / totalImages) * 360;
+                    gradient.addColorStop(0, `hsl(${hue}, 70%, 60%)`);
+                    gradient.addColorStop(1, `hsl(${(hue + 60) % 360}, 70%, 40%)`);
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, 256, 256);
+                    
+                    // 添加文字
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 48px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                    ctx.shadowBlur = 10;
+                    ctx.fillText(`${i + 1}`, 128, 128);
+                    
+                    // 创建纹理
+                    const texture = new THREE.CanvasTexture(canvas);
+                    texture.needsUpdate = true;
+                    
+                    // 创建照片
+                    createPhoto.call(this, texture, i, totalImages);
+                    
+                    // 更新进度
+                    loadedImages++;
+                    const progress = (loadedImages / totalImages) * 100;
+                    document.getElementById('progress-bar').style.width = progress + '%';
+                    document.getElementById('loading-text').textContent = `正在准备 ${loadedImages}/${totalImages}`;
+                    
+                    if (loadedImages === totalImages) {
+                        setTimeout(() => {
                             document.getElementById('loading-screen').style.display = 'none';
-                        }
+                        }, 1000);
                     }
-                );
-            });
+                }
+            }
         }
         
         // 设置事件监听
@@ -1098,8 +1174,35 @@
             const viewer = document.getElementById('photo-viewer');
             const memory = photo.userData.memory;
             
-            // 使用photo的userData中存储的imageUrl
-            document.getElementById('viewer-image').src = photo.userData.imageUrl || demoImages[photo.userData.index % demoImages.length];
+            // 对于测试版本，显示占位图片
+            const viewerImage = document.getElementById('viewer-image');
+            if (photo.userData.imageUrl) {
+                viewerImage.src = photo.userData.imageUrl;
+            } else {
+                // 创建一个大的渐变图作为预览
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+                
+                const hue = (photo.userData.index / 30) * 360;
+                const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+                gradient.addColorStop(0, `hsl(${hue}, 70%, 60%)`);
+                gradient.addColorStop(1, `hsl(${(hue + 60) % 360}, 70%, 40%)`);
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 512, 512);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 120px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 20;
+                ctx.fillText(`${photo.userData.index + 1}`, 256, 256);
+                
+                viewerImage.src = canvas.toDataURL();
+            }
+            
             document.getElementById('viewer-title').textContent = memory.title;
             document.getElementById('viewer-date').textContent = memory.date;
             document.getElementById('viewer-description').textContent = memory.description;
