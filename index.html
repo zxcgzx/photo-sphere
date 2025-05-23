@@ -3,32 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>我们的小世界 - 3D照片墙</title>
-    <!-- 
-    ========================================
-    使用说明：
-    
-    1. 准备照片：
-       - 在HTML文件同目录下创建 photos 文件夹
-       - 将照片命名为 photo1.jpg, photo2.jpg ... photo30.jpg
-       - 支持 jpg/jpeg/png 格式
-       - 建议照片尺寸不要太大（宽度1000px左右即可）
-    
-    2. 配置说明：
-       - USE_REAL_PHOTOS: true 使用真实照片，false 使用测试模式
-       - photoCount: 你的照片数量
-       - startDate: 你们的纪念日
-       - captions: 每张照片的说明文字（数组顺序对应照片编号）
-    
-    3. 文件结构：
-       your-folder/
-       ├── index.html (这个文件)
-       └── photos/
-           ├── photo1.jpg
-           ├── photo2.jpg
-           └── ... photo30.jpg
-    ========================================
-    -->
+    <title>我们的小宇宙 - 3D照片星球</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&display=swap');
         
@@ -39,20 +14,86 @@
             -webkit-tap-highlight-color: transparent;
         }
         
+        // 创建星空背景
+        function createStarField() {
+            const canvas = document.getElementById('stars-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // 创建渐变背景
+            const gradient = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, 0,
+                canvas.width / 2, canvas.height / 2, canvas.width / 2
+            );
+            gradient.addColorStop(0, '#0a0a2a');
+            gradient.addColorStop(0.5, '#000814');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 创建星星
+            for (let i = 0; i < config.starsCount; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 1.5;
+                const opacity = Math.random() * 0.8 + 0.2;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                ctx.fill();
+                
+                // 添加发光效果
+                if (Math.random() > 0.95) {
+                    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 4);
+                    glow.addColorStop(0, `rgba(255, 255, 255, ${opacity})`);
+                    glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = glow;
+                    ctx.fillRect(x - radius * 4, y - radius * 4, radius * 8, radius * 8);
+                }
+            }
+            
+            // 添加星云效果
+            for (let i = 0; i < 3; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 200 + 100;
+                const color = config.galaxyColors[Math.floor(Math.random() * config.galaxyColors.length)];
+                
+                const nebula = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                nebula.addColorStop(0, color + '20');
+                nebula.addColorStop(0.5, color + '10');
+                nebula.addColorStop(1, 'transparent');
+                ctx.fillStyle = nebula;
+                ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+            }
+        }
+        
         body {
+            margin: 0;
             overflow: hidden;
-            font-family: 'Noto Sans SC', sans-serif;
-            background: linear-gradient(135deg, #ffeef8 0%, #ffe0f0 25%, #fbf0ff 50%, #f0f4ff 75%, #ffeef8 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
-            color: #333;
-            touch-action: pan-y;
+            font-family: 'Noto Sans SC', Arial, sans-serif;
+            background: #000;
+            color: #fff;
+            touch-action: none;
         }
         
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
+        }
+        
+        /* 星空画布 */
+        #stars-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
         }
         
         #canvas-container {
@@ -74,18 +115,22 @@
         }
         
         #main-title {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 300;
-            color: #ff6b9d;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.8);
+            filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.5));
         }
         
         .emoji-decoration {
-            font-size: 20px;
+            font-size: 24px;
             animation: bounce 2s ease-in-out infinite;
         }
         
@@ -105,16 +150,17 @@
             justify-content: center;
             gap: 10px;
             padding: 15px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(10, 10, 42, 0.8);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(255, 107, 157, 0.2);
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.2);
             max-width: 90%;
             z-index: 100;
         }
         
         .control-btn {
-            background: linear-gradient(135deg, #ff6b9d, #feca57);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
             border-radius: 25px;
@@ -126,7 +172,8 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
         
         .control-btn:active {
@@ -143,13 +190,15 @@
             position: fixed;
             top: 60px;
             left: 20px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(10, 10, 42, 0.8);
             backdrop-filter: blur(10px);
             border-radius: 15px;
             padding: 15px;
             font-size: 14px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.2);
             display: none;
+            z-index: 90;
         }
         
         .stat-item {
@@ -157,7 +206,7 @@
             align-items: center;
             gap: 8px;
             margin: 5px 0;
-            color: #666;
+            color: #e0e7ff;
         }
         
         .stat-emoji {
@@ -171,7 +220,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #ffeef8, #fbf0ff);
+            background: linear-gradient(135deg, #0a0a2a, #000814);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -189,9 +238,10 @@
             position: absolute;
             width: 20px;
             height: 20px;
-            background: #ff6b9d;
+            background: #667eea;
             transform: rotate(45deg);
             animation: heartFloat 1.5s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
         }
         
         .loading-heart::before,
@@ -200,7 +250,7 @@
             position: absolute;
             width: 20px;
             height: 20px;
-            background: #ff6b9d;
+            background: #667eea;
             border-radius: 50%;
         }
         
@@ -225,8 +275,27 @@
         
         #loading-text {
             margin-top: 30px;
-            color: #ff6b9d;
+            color: #e0e7ff;
             font-size: 16px;
+            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+        
+        #loading-progress {
+            width: 300px;
+            height: 8px;
+            background-color: rgba(102, 126, 234, 0.2);
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #667eea, #764ba2, #9d4edd);
+            transition: width 0.3s;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.8);
         }
         
         /* 照片查看器 */
@@ -283,9 +352,10 @@
         }
         
         #viewer-date {
-            color: #feca57;
+            color: #9bb5ff;
             font-size: 14px;
             margin: 10px 0;
+            text-shadow: 0 0 10px rgba(155, 181, 255, 0.5);
         }
         
         #viewer-caption {
@@ -294,27 +364,27 @@
             opacity: 0.9;
         }
         
-        /* 移动端适配 */
-        @media (max-width: 768px) {
-            #main-title {
-                font-size: 20px;
-            }
-            
-            #control-panel {
-                bottom: 10px;
-                padding: 10px;
-                gap: 8px;
-            }
-            
-            .control-btn {
-                padding: 8px 16px;
-                font-size: 12px;
-            }
-            
-            #stats-panel {
-                font-size: 12px;
-                padding: 10px;
-            }
+        /* 手势提示 */
+        #gesture-hint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 10, 42, 0.9);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            font-size: 16px;
+            z-index: 150;
+            display: none;
+            text-align: center;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        }
+        
+        .hint-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
         }
         
         /* 浮动元素 */
@@ -344,45 +414,63 @@
             }
         }
         
-        /* 手势提示 */
-        #gesture-hint {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 20px;
-            font-size: 16px;
-            z-index: 150;
-            display: none;
-            text-align: center;
+        /* Toast提示 */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
         }
         
-        .hint-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            #main-title {
+                font-size: 22px;
+            }
+            
+            .emoji-decoration {
+                font-size: 20px;
+            }
+            
+            #control-panel {
+                bottom: 10px;
+                padding: 10px;
+                gap: 8px;
+            }
+            
+            .control-btn {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+            
+            #stats-panel {
+                font-size: 12px;
+                padding: 10px;
+            }
         }
     </style>
 </head>
 <body>
+    <canvas id="stars-canvas"></canvas>
+    
     <div id="loading-screen">
         <div class="loading-animation">
             <div class="loading-heart" style="left: 30px; top: 0;"></div>
             <div class="loading-heart" style="left: 0; top: 30px;"></div>
             <div class="loading-heart" style="left: 60px; top: 30px;"></div>
         </div>
-        <p id="loading-text">正在准备我们的小世界...</p>
+        <p id="loading-text">正在准备我们的小宇宙...</p>
+        <div id="loading-progress">
+            <div id="progress-bar"></div>
+        </div>
     </div>
     
     <div id="canvas-container"></div>
     
     <div id="title-container">
         <h1 id="main-title">
-            <span class="emoji-decoration">💕</span>
-            <span>我们的小世界</span>
-            <span class="emoji-decoration">📸</span>
+            <span class="emoji-decoration">🌍</span>
+            <span>我们的小宇宙</span>
+            <span class="emoji-decoration">✨</span>
         </h1>
     </div>
     
@@ -418,6 +506,10 @@
             <span>🎨</span>
             <span>换个心情</span>
         </button>
+        <button class="control-btn" id="btn-light">
+            <span>💡</span>
+            <span>切换光效</span>
+        </button>
         <button class="control-btn" id="btn-surprise">
             <span>🎉</span>
             <span>小惊喜</span>
@@ -435,48 +527,48 @@
     
     <div id="gesture-hint">
         <div class="hint-icon">👆</div>
-        <div>滑动旋转，双指缩放</div>
+        <div>滑动旋转星球，双指缩放视角</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js"></script>
     
     <script>
-        // ========================================
-        // 使用说明：
-        // 1. 创建一个名为 photos 的文件夹
-        // 2. 将照片命名为 photo1.jpg, photo2.jpg ... photo30.jpg
-        // 3. 如果照片数量不同，修改下面的 photoCount
-        // 4. 在 captions 数组中为每张照片添加说明文字
-        // ========================================
-        
         // 配置
-        const USE_REAL_PHOTOS = false; // 设为 true 使用真实照片
-        const PHOTO_PATH = 'photos/'; // 照片文件夹路径
-        
         const config = {
-            radius: 200,
-            photoSize: 80,
-            autoRotateSpeed: 0.3,
+            radius: 250,
+            particleCount: 400,
+            imageSize: 50,
+            autoRotateSpeed: 0.2,
             startDate: new Date('2024-01-01'), // 修改成你们的纪念日
-            photoCount: 30, // 照片数量（根据实际调整）
+            photoCount: 53, // 照片数量
+            emojis: ['💫', '⭐', '✨', '🌟', '🌠', '🌌', '🌙', '☄️', '🚀', '🛸', '🌍', '🪐'],
+            moods: [
+                { name: '深空蓝', colors: ['#000428', '#004e92'] },
+                { name: '星云紫', colors: ['#1a1a2e', '#16213e', '#0f3460', '#533483'] },
+                { name: '极光绿', colors: ['#0f0c29', '#302b63', '#24243e', '#0f9b0f'] },
+                { name: '宇宙红', colors: ['#200122', '#6f0000', '#dc004e'] }
+            ],
+            starsCount: 2000,
+            galaxyColors: ['#9bb5ff', '#9d9dff', '#ffcc99', '#ff9999'],
             captions: [
-                "第一次见面的咖啡店 ☕",
+                "第一次见面，宇宙开始 ✨",
                 "一起看的第一场电影 🎬",
                 "周末的午后阳光 🌞",
                 "你做的第一顿饭 🍳",
                 "雨天的拥抱 ☔",
                 "深夜的电话粥 📱",
                 "一起追的剧 📺",
-                "第一次旅行 ✈️",
+                "第一次旅行，探索新世界 🚀",
                 "生日惊喜 🎂",
-                "情人节的花 🌹",
+                "情人节的星光 🌟",
                 "公园散步 🌳",
                 "海边日落 🌅",
                 "一起做饭 👨‍🍳",
                 "游乐园的一天 🎡",
                 "看展览 🎨",
-                "爬山看风景 ⛰️",
+                "爬山看银河 🌌",
                 "一起学习 📚",
                 "宅在家的周末 🏠",
                 "深夜看星星 ⭐",
@@ -490,26 +582,44 @@
                 "牵手走过的街 🤝",
                 "一起等日出 🌄",
                 "雪天的温暖 ❄️",
-                "最美的笑容 😊"
-                // 如果照片超过30张，继续添加更多说明
-            ],
-            emojis: ['💕', '❤️', '💖', '💗', '💓', '💞', '💝', '🌸', '🌺', '🌼', '🌻', '⭐', '✨', '🌟'],
-            moods: [
-                { name: '甜蜜粉', colors: ['#ffeef8', '#ffe0f0', '#fbf0ff'] },
-                { name: '清新蓝', colors: ['#e3f2fd', '#e8f5e9', '#f3e5f5'] },
-                { name: '温暖橙', colors: ['#fff3e0', '#fff8e1', '#ffebee'] },
-                { name: '梦幻紫', colors: ['#f3e5f5', '#ede7f6', '#e8eaf6'] }
+                "最美的笑容 😊",
+                "樱花树下 🌸",
+                "图书馆学习 📖",
+                "第一次做蛋糕 🍰",
+                "看烟花，像流星 🎆",
+                "坐摩天轮，触碰天空 🎠",
+                "吃火锅 🍲",
+                "唱K的夜晚 🎤",
+                "看日出 🌅",
+                "逛夜市 🏮",
+                "一起画画 🎨",
+                "做手工 ✂️",
+                "看相册回忆 📷",
+                "一起种花 🌱",
+                "看月亮 🌙",
+                "吃冰淇淋 🍦",
+                "放风筝 🪁",
+                "骑单车 🚴",
+                "看展览 🖼️",
+                "写情书 💌",
+                "一起做瑜伽 🧘",
+                "看流星许愿 💫",
+                "许下永恒的愿望 🙏",
+                "我们的宇宙，永远闪耀 💑"
             ]
         };
         
         // 全局变量
         let scene, camera, renderer;
-        let photoGroup;
+        let photoGroup, particleGroup, orbitGroup;
         let photos = [];
+        let particles = [];
+        let lights = [];
         let autoRotate = false;
+        let lightMode = 0;
         let currentMood = 0;
-        let touchStartX = 0;
-        let touchStartY = 0;
+        let stats;
+        let raycaster, mouse;
         let isUserInteracting = false;
         let targetRotationX = 0;
         let targetRotationY = 0;
@@ -518,20 +628,29 @@
         let windowHalfX = window.innerWidth / 2;
         let windowHalfY = window.innerHeight / 2;
         
+        // 预设图片路径
+        const demoImages = [];
+        for (let i = 1; i <= config.photoCount; i++) {
+            demoImages.push(`photos/photo${i}.jpg`);
+        }
+        
         // 初始化
         function init() {
+            // 创建星空背景
+            createStarField();
+            
             // 创建场景
             scene = new THREE.Scene();
-            scene.fog = new THREE.Fog(0xf0f0f0, 100, 1000);
+            scene.fog = new THREE.Fog(0x000000, 100, 2000);
             
             // 相机
             camera = new THREE.PerspectiveCamera(
-                50,
+                60,
                 window.innerWidth / window.innerHeight,
-                1,
-                2000
+                0.1,
+                5000
             );
-            camera.position.z = 500;
+            camera.position.z = config.radius * 2.5;
             
             // 渲染器
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -539,23 +658,38 @@
             renderer.setPixelRatio(window.devicePixelRatio);
             document.getElementById('canvas-container').appendChild(renderer.domElement);
             
-            // 光照
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-            scene.add(ambientLight);
+            // 射线投射器
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
             
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-            directionalLight.position.set(100, 100, 100);
-            scene.add(directionalLight);
+            // 添加性能监视器
+            if (window.location.hash.includes('debug')) {
+                stats = new Stats();
+                stats.showPanel(0);
+                document.body.appendChild(stats.dom);
+            }
             
-            // 创建照片组
+            // 设置灯光
+            setupLights();
+            
+            // 创建组
             photoGroup = new THREE.Group();
             scene.add(photoGroup);
             
-            // 创建照片
-            createPhotos();
+            particleGroup = new THREE.Group();
+            scene.add(particleGroup);
+            
+            orbitGroup = new THREE.Group();
+            scene.add(orbitGroup);
+            
+            // 添加装饰
+            addDecorations();
             
             // 设置事件
             setupEventListeners();
+            
+            // 加载图片
+            loadImages();
             
             // 更新统计
             updateStats();
@@ -563,54 +697,239 @@
             // 创建浮动元素
             createFloatingElements();
             
-            // 开始动画循环
+            // 开始动画
             animate();
         }
         
-        // 创建照片
-        function createPhotos() {
-            const loader = new THREE.TextureLoader();
-            let loadedCount = 0;
+        // 设置灯光
+        function setupLights() {
+            // 环境光 - 模拟宇宙的微弱光线
+            const ambientLight = new THREE.AmbientLight(0x404080, 0.4);
+            scene.add(ambientLight);
             
-            for (let i = 0; i < config.photoCount; i++) {
-                if (USE_REAL_PHOTOS) {
-                    // 加载真实照片
-                    const photoUrl = `${PHOTO_PATH}photo${i + 1}.jpg`;
-                    
-                    loader.load(
-                        photoUrl,
-                        (texture) => {
-                            createPhotoMesh(texture, i);
-                            loadedCount++;
-                            updateLoadingProgress(loadedCount);
-                        },
-                        undefined,
-                        (error) => {
-                            console.warn(`无法加载 ${photoUrl}，使用占位图`);
-                            // 如果加载失败，创建占位图
-                            createPlaceholderPhoto(i);
-                            loadedCount++;
-                            updateLoadingProgress(loadedCount);
-                        }
-                    );
-                } else {
-                    // 测试模式 - 创建彩色占位图
-                    createPlaceholderPhoto(i);
-                    loadedCount++;
-                }
+            // 主光源 - 模拟太阳
+            const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            sunLight.position.set(500, 300, 500);
+            scene.add(sunLight);
+            lights.push(sunLight);
+            
+            // 边缘光 - 模拟地球大气层的光晕
+            const rimLight = new THREE.DirectionalLight(0x6495ed, 0.6);
+            rimLight.position.set(-300, -200, -500);
+            scene.add(rimLight);
+            lights.push(rimLight);
+            
+            // 点光源 - 模拟星光
+            const starLight = new THREE.PointLight(0x9bb5ff, 1.5, 2000);
+            starLight.position.set(0, 0, 400);
+            scene.add(starLight);
+            lights.push(starLight);
+            
+            // 添加光晕效果
+            const haloLight = new THREE.PointLight(0x667eea, 0.5, 1000);
+            haloLight.position.set(0, 0, -300);
+            scene.add(haloLight);
+            lights.push(haloLight);
+        }
+        
+        // 添加装饰
+        function addDecorations() {
+            // 创建地球大气层效果
+            const atmosphereGeometry = new THREE.SphereGeometry(config.radius * 1.15, 64, 64);
+            const atmosphereMaterial = new THREE.ShaderMaterial({
+                vertexShader: `
+                    varying vec3 vNormal;
+                    varying vec3 vPosition;
+                    void main() {
+                        vNormal = normalize(normalMatrix * normal);
+                        vPosition = position;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    varying vec3 vNormal;
+                    uniform vec3 glowColor;
+                    void main() {
+                        float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
+                        gl_FragColor = vec4(glowColor, intensity * 0.5);
+                    }
+                `,
+                uniforms: {
+                    glowColor: { value: new THREE.Color(0x4169e1) }
+                },
+                side: THREE.BackSide,
+                blending: THREE.AdditiveBlending,
+                transparent: true
+            });
+            const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+            scene.add(atmosphere);
+            
+            // 创建内部发光球体
+            const glowSphereGeometry = new THREE.SphereGeometry(config.radius * 0.98, 32, 32);
+            const glowSphereMaterial = new THREE.MeshBasicMaterial({
+                color: 0x1e3a8a,
+                transparent: true,
+                opacity: 0.1,
+                side: THREE.BackSide
+            });
+            const glowSphere = new THREE.Mesh(glowSphereGeometry, glowSphereMaterial);
+            scene.add(glowSphere);
+            
+            // 添加星尘粒子系统
+            const starDustMaterial = new THREE.PointsMaterial({
+                color: 0xaaaaff,
+                size: 2,
+                transparent: true,
+                opacity: 0.8,
+                sizeAttenuation: true,
+                blending: THREE.AdditiveBlending,
+                map: createStarTexture()
+            });
+            
+            const starDustGeometry = new THREE.BufferGeometry();
+            const starDustPositions = [];
+            
+            for (let i = 0; i < config.particleCount; i++) {
+                const radius = config.radius * (1.5 + Math.random() * 2);
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                
+                const x = radius * Math.sin(phi) * Math.cos(theta);
+                const y = radius * Math.sin(phi) * Math.sin(theta);
+                const z = radius * Math.cos(phi);
+                
+                starDustPositions.push(x, y, z);
             }
             
-            document.getElementById('photo-count').textContent = config.photoCount;
+            starDustGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starDustPositions, 3));
+            const starDustSystem = new THREE.Points(starDustGeometry, starDustMaterial);
+            particleGroup.add(starDustSystem);
+            particles.push(starDustSystem);
             
-            // 如果是测试模式，直接隐藏加载画面
-            if (!USE_REAL_PHOTOS) {
-                updateLoadingProgress(config.photoCount);
+            // 添加行星环
+            const ringCount = 2;
+            for (let i = 0; i < ringCount; i++) {
+                const ringRadius = config.radius * (1.3 + i * 0.2);
+                const ringGeometry = new THREE.TorusGeometry(ringRadius, 2, 8, 100);
+                const ringMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x6495ed,
+                    transparent: true,
+                    opacity: 0.3 - i * 0.1,
+                    side: THREE.DoubleSide
+                });
+                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                
+                // 倾斜环
+                ring.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.5;
+                ring.rotation.z = Math.random() * Math.PI;
+                
+                orbitGroup.add(ring);
+            }
+            
+            // 添加小行星
+            for (let i = 0; i < 10; i++) {
+                const asteroidGeometry = new THREE.SphereGeometry(5 + Math.random() * 10, 8, 8);
+                const asteroidMaterial = new THREE.MeshPhongMaterial({
+                    color: 0x8b8680,
+                    emissive: 0x222222,
+                    shininess: 10
+                });
+                const asteroid = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
+                
+                const distance = config.radius * (2 + Math.random() * 2);
+                const angle = Math.random() * Math.PI * 2;
+                asteroid.position.x = distance * Math.cos(angle);
+                asteroid.position.z = distance * Math.sin(angle);
+                asteroid.position.y = (Math.random() - 0.5) * 200;
+                
+                asteroid.userData = {
+                    orbitRadius: distance,
+                    orbitSpeed: 0.001 + Math.random() * 0.002,
+                    orbitAngle: angle
+                };
+                
+                orbitGroup.add(asteroid);
             }
         }
         
-        // 创建照片网格
-        function createPhotoMesh(texture, index) {
-            const geometry = new THREE.PlaneGeometry(config.photoSize, config.photoSize);
+        // 创建星星纹理
+        function createStarTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            
+            const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.2, 'rgba(200, 200, 255, 1)');
+            gradient.addColorStop(0.4, 'rgba(150, 150, 255, 0.5)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 32, 32);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            return texture;
+        }
+        
+        // 加载图片
+        function loadImages() {
+            const loader = new THREE.TextureLoader();
+            let loadedImages = 0;
+            
+            demoImages.forEach((url, index) => {
+                loader.load(
+                    url,
+                    (texture) => {
+                        createPhoto(texture, index, config.photoCount);
+                        loadedImages++;
+                        updateLoadingProgress(loadedImages);
+                    },
+                    undefined,
+                    (error) => {
+                        console.warn(`无法加载 ${url}，使用占位图`);
+                        createPlaceholderPhoto(index);
+                        loadedImages++;
+                        updateLoadingProgress(loadedImages);
+                    }
+                );
+            });
+            
+            document.getElementById('photo-count').textContent = config.photoCount;
+        }
+        
+        // 创建照片
+        function createPhoto(texture, index, totalPhotos) {
+            // 使用Fibonacci球面分布算法
+            const phi = Math.acos(-1 + (2 * index) / totalPhotos);
+            const theta = Math.sqrt(totalPhotos * Math.PI) * phi;
+            
+            const randomFactor = 0.05;
+            const randomOffset = new THREE.Vector3(
+                (Math.random() - 0.5) * randomFactor,
+                (Math.random() - 0.5) * randomFactor,
+                (Math.random() - 0.5) * randomFactor
+            );
+            
+            const x = Math.cos(theta) * Math.sin(phi);
+            const y = Math.sin(theta) * Math.sin(phi);
+            const z = Math.cos(phi);
+            
+            const position = new THREE.Vector3(
+                config.radius * (x + randomOffset.x),
+                config.radius * (y + randomOffset.y),
+                config.radius * (z + randomOffset.z)
+            );
+            
+            position.normalize().multiplyScalar(config.radius);
+            
+            const normal = position.clone().normalize();
+            
+            const imageRatio = texture.image.width / texture.image.height;
+            const photoWidth = config.imageSize * imageRatio;
+            const photoHeight = config.imageSize;
+            
+            const geometry = new THREE.PlaneGeometry(photoWidth, photoHeight);
             const material = new THREE.MeshBasicMaterial({
                 map: texture,
                 side: THREE.DoubleSide,
@@ -618,29 +937,42 @@
             });
             
             const photo = new THREE.Mesh(geometry, material);
+            photo.position.copy(position);
             
-            // 使用改进的分布算法
-            const phi = Math.acos(-1 + (2 * index) / config.photoCount);
-            const theta = Math.sqrt(config.photoCount * Math.PI) * phi;
+            const lookAtPosition = position.clone().add(normal);
+            photo.lookAt(lookAtPosition);
+            photo.rotateZ(Math.random() * Math.PI * 0.1);
             
-            photo.position.x = config.radius * Math.cos(theta) * Math.sin(phi);
-            photo.position.y = config.radius * Math.sin(theta) * Math.sin(phi);
-            photo.position.z = config.radius * Math.cos(phi);
-            
-            // 让照片面向外
-            photo.lookAt(
-                photo.position.x * 2,
-                photo.position.y * 2,
-                photo.position.z * 2
-            );
-            
-            // 存储照片信息
             photo.userData = {
+                originalPosition: position.clone(),
+                normal: normal.clone(),
                 index: index,
-                caption: config.captions[index] || `照片 ${index + 1} 💕`,
-                date: getRandomDate(),
-                imageUrl: texture.image.src
+                imageName: config.captions[index] || `照片 ${index + 1} 💕`,
+                imageUrl: texture.image.src,
+                date: getRandomDate()
             };
+            
+            // 添加照片边框 - 发光效果
+            const edgeGeometry = new THREE.EdgesGeometry(geometry);
+            const edgeMaterial = new THREE.LineBasicMaterial({
+                color: 0x6495ed,
+                transparent: true,
+                opacity: 0.8,
+                linewidth: 2
+            });
+            const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+            photo.add(edges);
+            
+            // 添加照片发光效果
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0x4169e1,
+                transparent: true,
+                opacity: 0.3,
+                side: THREE.BackSide
+            });
+            const glowMesh = new THREE.Mesh(geometry, glowMaterial);
+            glowMesh.scale.set(1.1, 1.1, 1.1);
+            photo.add(glowMesh);
             
             photoGroup.add(photo);
             photos.push(photo);
@@ -661,32 +993,44 @@
             canvas.height = 256;
             const ctx = canvas.getContext('2d');
             
-            // 渐变背景
-            const gradient = ctx.createLinearGradient(0, 0, 256, 256);
+            // 宇宙渐变背景
+            const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
             const hue = (index / config.photoCount) * 360;
-            gradient.addColorStop(0, `hsl(${hue}, 70%, 80%)`);
-            gradient.addColorStop(1, `hsl(${(hue + 30) % 360}, 70%, 90%)`);
+            gradient.addColorStop(0, `hsl(${(hue + 200) % 360}, 60%, 50%)`);
+            gradient.addColorStop(0.5, `hsl(${(hue + 240) % 360}, 70%, 40%)`);
+            gradient.addColorStop(1, `hsl(${(hue + 280) % 360}, 80%, 30%)`);
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, 256, 256);
+            
+            // 添加星点
+            for (let i = 0; i < 20; i++) {
+                ctx.beginPath();
+                ctx.arc(Math.random() * 256, Math.random() * 256, Math.random() * 2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.8 + 0.2})`;
+                ctx.fill();
+            }
             
             // 添加图标
             ctx.font = '80px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = 'white';
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+            ctx.shadowBlur = 20;
             const emoji = config.emojis[index % config.emojis.length];
             ctx.fillText(emoji, 128, 128);
             
             // 创建纹理
             const texture = new THREE.CanvasTexture(canvas);
-            createPhotoMesh(texture, index);
+            createPhoto(texture, index, config.photoCount);
         }
         
         // 更新加载进度
         function updateLoadingProgress(loaded) {
             const progress = (loaded / config.photoCount) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
             document.getElementById('loading-text').textContent = 
-                `正在准备我们的小世界... ${Math.round(progress)}%`;
+                `正在准备我们的小宇宙... ${Math.round(progress)}%`;
             
             if (loaded === config.photoCount) {
                 setTimeout(() => {
@@ -737,6 +1081,7 @@
             document.getElementById('btn-stats').addEventListener('click', toggleStats);
             document.getElementById('btn-random').addEventListener('click', randomView);
             document.getElementById('btn-mood').addEventListener('click', changeMood);
+            document.getElementById('btn-light').addEventListener('click', toggleLights);
             document.getElementById('btn-surprise').addEventListener('click', surprise);
             
             // 查看器关闭
@@ -770,10 +1115,12 @@
             event.preventDefault();
             const delta = event.deltaY * 0.5;
             camera.position.z += delta;
-            camera.position.z = Math.max(200, Math.min(800, camera.position.z));
+            camera.position.z = Math.max(300, Math.min(1000, camera.position.z));
         }
         
         // 触摸事件处理
+        let touchStartX = 0;
+        let touchStartY = 0;
         let touchDistance = 0;
         
         function onTouchStart(event) {
@@ -804,7 +1151,7 @@
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 const delta = (distance - touchDistance) * 0.5;
                 camera.position.z -= delta;
-                camera.position.z = Math.max(200, Math.min(800, camera.position.z));
+                camera.position.z = Math.max(300, Math.min(1000, camera.position.z));
                 touchDistance = distance;
             }
         }
@@ -817,11 +1164,9 @@
         function onPhotoClick(event) {
             if (isUserInteracting) return;
             
-            const mouse = new THREE.Vector2();
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
             
-            const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, camera);
             
             const intersects = raycaster.intersectObjects(photos);
@@ -838,7 +1183,6 @@
             const date = document.getElementById('viewer-date');
             const caption = document.getElementById('viewer-caption');
             
-            // 使用照片的纹理或URL
             if (photo.userData.imageUrl) {
                 image.src = photo.userData.imageUrl;
             } else if (photo.material.map && photo.material.map.image) {
@@ -846,7 +1190,7 @@
             }
             
             date.textContent = photo.userData.date;
-            caption.textContent = photo.userData.caption;
+            caption.textContent = photo.userData.imageName;
             
             viewer.style.display = 'flex';
         }
@@ -871,7 +1215,7 @@
             stats.style.display = stats.style.display === 'none' ? 'block' : 'none';
         }
         
-        // 随机视角
+        // 随机视角 - 相机飞向随机照片
         function randomView() {
             const randomPhoto = photos[Math.floor(Math.random() * photos.length)];
             
@@ -879,7 +1223,7 @@
             const direction = new THREE.Vector3();
             direction.copy(randomPhoto.position).normalize();
             
-            const targetPosition = direction.multiplyScalar(400);
+            const targetPosition = direction.multiplyScalar(500);
             
             new TWEEN.Tween(camera.position)
                 .to(targetPosition, 1500)
@@ -903,46 +1247,142 @@
             currentMood = (currentMood + 1) % config.moods.length;
             const mood = config.moods[currentMood];
             
-            document.body.style.background = `linear-gradient(135deg, ${mood.colors.join(', ')})`;
-            document.body.style.backgroundSize = '400% 400%';
+            // 更新星空背景
+            const canvas = document.getElementById('stars-canvas');
+            const ctx = canvas.getContext('2d');
             
-            // 显示提示
+            // 创建新的渐变背景
+            const gradient = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, 0,
+                canvas.width / 2, canvas.height / 2, canvas.width / 2
+            );
+            
+            if (mood.colors.length === 2) {
+                gradient.addColorStop(0, mood.colors[0]);
+                gradient.addColorStop(1, mood.colors[1]);
+            } else {
+                mood.colors.forEach((color, index) => {
+                    gradient.addColorStop(index / (mood.colors.length - 1), color);
+                });
+            }
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 重新绘制星星
+            for (let i = 0; i < config.starsCount; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 1.5;
+                const opacity = Math.random() * 0.8 + 0.2;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                ctx.fill();
+            }
+            
             showToast(`切换到${mood.name}主题 🎨`);
         }
         
-        // 小惊喜
+        // 切换灯光效果
+        function toggleLights() {
+            lightMode = (lightMode + 1) % 3;
+            
+            switch (lightMode) {
+                case 0: // 地球日光
+                    lights[0].color.set(0xffffff);
+                    lights[1].color.set(0x6495ed);
+                    lights[2].color.set(0x9bb5ff);
+                    showToast('地球日光 ☀️');
+                    break;
+                
+                case 1: // 极光模式
+                    lights[0].color.set(0x00ff88);
+                    lights[1].color.set(0x00ffff);
+                    lights[2].color.set(0xff00ff);
+                    showToast('极光模式 🌌');
+                    break;
+                
+                case 2: // 深空模式
+                    lights[0].color.set(0x4444ff);
+                    lights[1].color.set(0x8844ff);
+                    lights[2].color.set(0xff44ff);
+                    showToast('深空模式 🌠');
+                    break;
+            }
+        }
+        
+        // 小惊喜 - 流星雨 + 照片波浪动画
         function surprise() {
-            // 爱心雨效果
-            for (let i = 0; i < 30; i++) {
+            // 流星雨效果
+            for (let i = 0; i < 20; i++) {
                 setTimeout(() => {
-                    createFloatingEmoji('❤️');
-                }, i * 100);
+                    createMeteor();
+                }, i * 200);
             }
             
-            // 照片波浪动画
+            // 照片脉冲动画
             photos.forEach((photo, index) => {
                 const delay = index * 30;
-                new TWEEN.Tween(photo.position)
-                    .to({
-                        x: photo.position.x * 1.1,
-                        y: photo.position.y * 1.1,
-                        z: photo.position.z * 1.1
-                    }, 500)
+                new TWEEN.Tween(photo.scale)
+                    .to({ x: 1.2, y: 1.2, z: 1.2 }, 500)
                     .delay(delay)
                     .easing(TWEEN.Easing.Sinusoidal.InOut)
                     .onComplete(() => {
-                        new TWEEN.Tween(photo.position)
-                            .to({
-                                x: photo.position.x / 1.1,
-                                y: photo.position.y / 1.1,
-                                z: photo.position.z / 1.1
-                            }, 500)
+                        new TWEEN.Tween(photo.scale)
+                            .to({ x: 1, y: 1, z: 1 }, 500)
                             .start();
                     })
                     .start();
+                
+                // 添加旋转效果
+                new TWEEN.Tween(photo.rotation)
+                    .to({ z: photo.rotation.z + Math.PI * 2 }, 1000)
+                    .delay(delay)
+                    .easing(TWEEN.Easing.Quadratic.InOut)
+                    .start();
             });
             
-            showToast('惊喜！🎉');
+            showToast('流星雨来啦！🌠');
+        }
+        
+        // 创建流星
+        function createMeteor() {
+            const meteorGeometry = new THREE.CylinderGeometry(0, 2, 100, 8);
+            const meteorMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+            const meteor = new THREE.Mesh(meteorGeometry, meteorMaterial);
+            
+            // 随机起始位置
+            const startX = (Math.random() - 0.5) * 2000;
+            const startY = 800 + Math.random() * 500;
+            const startZ = (Math.random() - 0.5) * 2000;
+            
+            meteor.position.set(startX, startY, startZ);
+            meteor.rotation.z = Math.PI / 4 + (Math.random() - 0.5) * Math.PI / 6;
+            
+            scene.add(meteor);
+            
+            // 流星动画
+            new TWEEN.Tween(meteor.position)
+                .to({
+                    x: startX - 500 - Math.random() * 500,
+                    y: -500,
+                    z: startZ + (Math.random() - 0.5) * 200
+                }, 2000)
+                .easing(TWEEN.Easing.Quadratic.In)
+                .onUpdate(() => {
+                    meteor.opacity = 1 - (800 - meteor.position.y) / 1300;
+                })
+                .onComplete(() => {
+                    scene.remove(meteor);
+                })
+                .start();
         }
         
         // 创建浮动表情
@@ -952,6 +1392,7 @@
             floater.textContent = emoji || config.emojis[Math.floor(Math.random() * config.emojis.length)];
             floater.style.left = Math.random() * window.innerWidth + 'px';
             floater.style.animationDuration = (5 + Math.random() * 5) + 's';
+            floater.style.filter = 'drop-shadow(0 0 6px rgba(255, 255, 255, 0.8))';
             document.body.appendChild(floater);
             
             setTimeout(() => floater.remove(), 10000);
@@ -966,7 +1407,7 @@
             }, 3000);
         }
         
-        // 显示提示
+        // 显示Toast提示
         function showToast(message) {
             const toast = document.createElement('div');
             toast.style.cssText = `
@@ -1007,11 +1448,21 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             windowHalfX = window.innerWidth / 2;
             windowHalfY = window.innerHeight / 2;
+            
+            // 更新星空画布
+            const canvas = document.getElementById('stars-canvas');
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                createStarField();
+            }
         }
         
         // 动画循环
         function animate() {
             requestAnimationFrame(animate);
+            
+            if (stats) stats.begin();
             
             TWEEN.update();
             
@@ -1031,22 +1482,55 @@
             // 限制X轴旋转
             photoGroup.rotation.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, photoGroup.rotation.x));
             
+            // 同步旋转
+            particleGroup.rotation.copy(photoGroup.rotation);
+            orbitGroup.rotation.copy(photoGroup.rotation);
+            
+            // 更新粒子闪烁
+            if (particles.length > 0) {
+                const positions = particles[0].geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    if (Math.random() < 0.002) {
+                        const radius = config.radius * (2 + Math.random() * 0.5);
+                        const theta = Math.random() * Math.PI * 2;
+                        const phi = Math.random() * Math.PI;
+                        
+                        positions[i] = radius * Math.sin(phi) * Math.cos(theta);
+                        positions[i+1] = radius * Math.sin(phi) * Math.sin(theta);
+                        positions[i+2] = radius * Math.cos(phi);
+                    }
+                }
+                particles[0].geometry.attributes.position.needsUpdate = true;
+            }
+            
+            // 更新点光源位置 - 模拟轨道运动
+            if (lights[2]) {
+                const time = Date.now() * 0.0005;
+                lights[2].position.x = Math.sin(time * 1.1) * config.radius * 2;
+                lights[2].position.y = Math.cos(time * 1.3) * config.radius * 1.5;
+                lights[2].position.z = Math.sin(time * 1.5) * config.radius + config.radius * 1.5;
+            }
+            
+            // 更新小行星轨道
+            orbitGroup.children.forEach((child) => {
+                if (child.userData.orbitRadius) {
+                    child.userData.orbitAngle += child.userData.orbitSpeed;
+                    child.position.x = child.userData.orbitRadius * Math.cos(child.userData.orbitAngle);
+                    child.position.z = child.userData.orbitRadius * Math.sin(child.userData.orbitAngle);
+                    child.rotation.x += 0.01;
+                    child.rotation.y += 0.01;
+                }
+            });
+            
             renderer.render(scene, camera);
+            
+            if (stats) stats.end();
         }
         
-        // 添加淡入淡出动画样式
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeInOut {
-                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-                50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-            }
-        `;
-        document.head.appendChild(style);
-        
         // 启动
-        init();
+        window.onload = function() {
+            init();
+        };
     </script>
 </body>
 </html>
