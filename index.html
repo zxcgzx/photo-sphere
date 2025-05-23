@@ -3,98 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>球体照片墙</title>
+    <title>浪漫回忆 - 3D照片墙</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+        
         body {
             margin: 0;
             overflow: hidden;
-            font-family: Arial, "Microsoft YaHei", sans-serif;
-            background-color: #020510;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a0033 0%, #330033 50%, #1a0033 100%);
             color: #fff;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="rgba(255,182,193,0.5)" /><circle cx="16" cy="16" r="5" fill="rgba(255,105,180,0.8)" /></svg>'), auto;
         }
         
         #canvas-container {
             position: fixed;
             width: 100%;
             height: 100%;
+            background: radial-gradient(ellipse at center, rgba(255,20,147,0.05) 0%, transparent 70%);
+        }
+        
+        /* 星空背景 */
+        #stars-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20% 30%, white, transparent),
+                radial-gradient(2px 2px at 40% 70%, white, transparent),
+                radial-gradient(1px 1px at 50% 50%, white, transparent),
+                radial-gradient(1px 1px at 80% 10%, white, transparent),
+                radial-gradient(2px 2px at 90% 60%, white, transparent);
+            background-size: 200% 200%;
+            animation: twinkle 15s ease-in-out infinite;
+            opacity: 0.3;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
         }
         
         #help-panel {
             position: fixed;
             bottom: 20px;
             left: 20px;
-            background-color: rgba(0, 0, 0, 0.6);
-            border: 1px solid #8090ff;
-            border-radius: 8px;
-            padding: 15px;
+            background: linear-gradient(135deg, rgba(255,20,147,0.1), rgba(255,105,180,0.1));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,182,193,0.5);
+            border-radius: 15px;
+            padding: 20px;
             color: #fff;
             font-size: 14px;
-            max-width: 250px;
-            opacity: 0.9;
-            transition: opacity 0.3s;
-            z-index: 100;
+            max-width: 280px;
+            box-shadow: 0 8px 32px rgba(255,20,147,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        #help-panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(255,20,147,0.3);
         }
         
         #help-panel h3 {
             margin-top: 0;
-            color: #8090ff;
-        }
-        
-        #help-panel ul {
-            padding-left: 20px;
-            margin-bottom: 5px;
+            color: #ffb6c1;
+            font-family: 'Dancing Script', cursive;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(255,182,193,0.5);
         }
         
         #control-panel {
             position: fixed;
             top: 20px;
             right: 20px;
-            background-color: rgba(0, 0, 0, 0.6);
-            border: 1px solid #8090ff;
-            border-radius: 8px;
-            padding: 15px;
+            background: linear-gradient(135deg, rgba(255,20,147,0.1), rgba(255,105,180,0.1));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,182,193,0.5);
+            border-radius: 15px;
+            padding: 20px;
             color: #fff;
             z-index: 100;
             display: none;
+            box-shadow: 0 8px 32px rgba(255,20,147,0.2);
         }
         
         .control-btn {
-            background-color: #213060;
+            background: linear-gradient(135deg, #ff1493, #ff69b4);
             color: #fff;
             border: none;
-            border-radius: 4px;
-            padding: 8px 12px;
-            margin: 5px 0;
+            border-radius: 25px;
+            padding: 10px 20px;
+            margin: 8px 0;
             width: 100%;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(255,20,147,0.3);
         }
         
         .control-btn:hover {
-            background-color: #4050b0;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(255,20,147,0.4);
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
         }
         
         #title-container {
             position: fixed;
-            top: 20px;
+            top: 30px;
             left: 0;
             right: 0;
             text-align: center;
             z-index: 50;
+            pointer-events: none;
         }
         
         #main-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #8090ff;
-            text-shadow: 0 0 10px rgba(0, 0, 255, 0.5);
+            font-family: 'Dancing Script', cursive;
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff6b9d, #feca57, #ff9ff3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255,20,147,0.5);
             margin: 0;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
         
         #subtitle {
-            font-size: 16px;
-            color: #6070df;
-            margin-top: 5px;
+            font-size: 20px;
+            color: #ffb6c1;
+            margin-top: 10px;
+            font-style: italic;
+            opacity: 0.9;
+            text-shadow: 0 0 10px rgba(255,182,193,0.5);
         }
         
         #loading-screen {
@@ -103,7 +151,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #020510;
+            background: linear-gradient(135deg, #1a0033 0%, #330033 50%, #1a0033 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -111,20 +159,66 @@
             z-index: 1000;
         }
         
+        #loading-heart {
+            width: 100px;
+            height: 90px;
+            position: relative;
+            animation: heartbeat 1.2s ease-in-out infinite;
+        }
+        
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.3); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.3); }
+            70% { transform: scale(1); }
+        }
+        
+        #loading-heart:before,
+        #loading-heart:after {
+            content: '';
+            width: 52px;
+            height: 80px;
+            position: absolute;
+            left: 50px;
+            top: 0;
+            background: #ff69b4;
+            border-radius: 50px 50px 0 0;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+            box-shadow: 0 0 20px rgba(255,105,180,0.8);
+        }
+        
+        #loading-heart:after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+        
+        #loading-text {
+            margin-top: 30px;
+            font-size: 20px;
+            color: #ffb6c1;
+            font-family: 'Dancing Script', cursive;
+            text-shadow: 0 0 10px rgba(255,182,193,0.5);
+        }
+        
         #loading-progress {
             width: 300px;
             height: 10px;
-            background-color: #213060;
-            border-radius: 5px;
+            background-color: rgba(255,182,193,0.2);
+            border-radius: 10px;
             margin-top: 20px;
             overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(255,20,147,0.2);
         }
         
         #progress-bar {
             height: 100%;
             width: 0%;
-            background-color: #8090ff;
+            background: linear-gradient(90deg, #ff6b9d, #feca57, #ff9ff3);
             transition: width 0.3s;
+            box-shadow: 0 0 10px rgba(255,105,180,0.6);
         }
         
         /* 照片查看器样式 */
@@ -134,779 +228,934 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 200;
             flex-direction: column;
+            backdrop-filter: blur(10px);
         }
         
         #viewer-image {
             max-width: 80%;
-            max-height: 80%;
+            max-height: 70%;
             object-fit: contain;
-            border: 3px solid #8090ff;
-            box-shadow: 0 0 30px rgba(100, 150, 255, 0.6);
+            border: 5px solid transparent;
+            background: linear-gradient(45deg, #ff6b9d, #feca57, #ff9ff3) border-box;
+            border-radius: 15px;
+            box-shadow: 0 0 50px rgba(255,20,147,0.5);
+            animation: glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 30px rgba(255,20,147,0.5); }
+            50% { box-shadow: 0 0 60px rgba(255,20,147,0.8); }
         }
         
         #viewer-close {
             position: absolute;
-            top: 20px;
-            right: 30px;
-            font-size: 40px;
-            color: #fff;
+            top: 30px;
+            right: 40px;
+            font-size: 50px;
+            color: #ffb6c1;
             cursor: pointer;
-            transition: color 0.3s;
+            transition: all 0.3s;
+            text-shadow: 0 0 10px rgba(255,182,193,0.5);
         }
         
         #viewer-close:hover {
-            color: #8090ff;
+            color: #ff69b4;
+            transform: rotate(90deg);
+        }
+        
+        #viewer-info {
+            margin-top: 20px;
+            text-align: center;
+            max-width: 600px;
         }
         
         #viewer-title {
-            margin-top: 15px;
-            color: #8090ff;
+            color: #ffb6c1;
+            font-size: 28px;
+            font-family: 'Dancing Script', cursive;
+            text-shadow: 0 0 15px rgba(255,182,193,0.6);
+            margin-bottom: 10px;
+        }
+        
+        #viewer-date {
+            color: #ff9ff3;
+            font-size: 16px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+        
+        #viewer-description {
+            color: #fff;
             font-size: 18px;
+            line-height: 1.6;
+            font-style: italic;
+            opacity: 0.9;
+        }
+        
+        /* 音乐控制 */
+        #music-control {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ff1493, #ff69b4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255,20,147,0.4);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        
+        #music-control:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(255,20,147,0.6);
+        }
+        
+        #music-icon {
+            width: 30px;
+            height: 30px;
+            fill: white;
+        }
+        
+        /* 浮动的爱心动画 */
+        .floating-heart {
+            position: fixed;
+            font-size: 20px;
+            color: rgba(255,105,180,0.6);
+            animation: floatUp 8s linear infinite;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        @keyframes floatUp {
+            0% {
+                bottom: -50px;
+                opacity: 0;
+                transform: translateX(0) scale(0.5);
+            }
+            10% {
+                opacity: 1;
+                transform: translateX(20px) scale(1);
+            }
+            50% {
+                transform: translateX(-20px) scale(1.2);
+            }
+            100% {
+                bottom: 100%;
+                opacity: 0;
+                transform: translateX(10px) scale(0.8);
+            }
+        }
+        
+        /* 日期选择器 */
+        #date-viewer {
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(255,20,147,0.1), rgba(255,105,180,0.1));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,182,193,0.5);
+            border-radius: 15px;
+            padding: 15px;
+            display: none;
+            z-index: 100;
+        }
+        
+        #special-date {
+            color: #ffb6c1;
+            font-family: 'Dancing Script', cursive;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        #days-together {
+            color: #ff9ff3;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
+    <div id="stars-bg"></div>
+    
     <div id="loading-screen">
-        <h2>正在加载球体照片墙</h2>
+        <div id="loading-heart"></div>
+        <p id="loading-text">正在准备你的美好回忆...</p>
         <div id="loading-progress">
             <div id="progress-bar"></div>
         </div>
-        <p id="loading-text">准备中...</p>
     </div>
     
     <div id="canvas-container"></div>
     
     <div id="title-container">
-        <h1 id="main-title">球体照片墙</h1>
-        <div id="subtitle">珍藏美好回忆</div>
+        <h1 id="main-title">Our Love Story</h1>
+        <div id="subtitle">每一张照片，都是爱的见证</div>
     </div>
     
     <div id="help-panel">
-        <h3>控制方式</h3>
+        <h3>浪漫操作指南</h3>
         <ul>
-            <li>鼠标拖动: 旋转查看</li>
-            <li>滚轮: 缩放</li>
-            <li>点击照片: 查看大图</li>
-            <li>H: 显示/隐藏帮助</li>
-            <li>C: 显示/隐藏控制面板</li>
-            <li>R: 重置视图</li>
-            <li>A: 开始/停止自动旋转</li>
-            <li>L: 切换光照效果</li>
+            <li>💕 鼠标拖动: 旋转爱的星球</li>
+            <li>🌟 滚轮: 拉近彼此距离</li>
+            <li>💖 点击照片: 重温美好瞬间</li>
+            <li>🎵 右下角: 播放浪漫音乐</li>
+            <li>✨ H: 显示/隐藏帮助</li>
+            <li>💫 C: 控制面板</li>
+            <li>🌹 R: 重回初见</li>
+            <li>💝 A: 自动旋转</li>
+            <li>🌈 L: 切换灯光氛围</li>
+            <li>💐 空格: 释放爱心雨</li>
         </ul>
     </div>
     
     <div id="control-panel">
-        <button class="control-btn" id="btn-auto-rotate">自动旋转</button>
-        <button class="control-btn" id="btn-reset-view">重置视图</button>
-        <button class="control-btn" id="btn-randomize">随机排列</button>
-        <button class="control-btn" id="btn-toggle-light">切换光效</button>
-        <button class="control-btn" id="btn-fullscreen">全屏显示</button>
+        <button class="control-btn" id="btn-auto-rotate">💫 自动旋转</button>
+        <button class="control-btn" id="btn-reset-view">🌹 重回初见</button>
+        <button class="control-btn" id="btn-heart-rain">💕 爱心雨</button>
+        <button class="control-btn" id="btn-slideshow">📸 幻灯片播放</button>
+        <button class="control-btn" id="btn-toggle-light">🌈 切换氛围</button>
+        <button class="control-btn" id="btn-fullscreen">✨ 全屏浪漫</button>
+    </div>
+    
+    <div id="date-viewer">
+        <div id="special-date">我们在一起</div>
+        <div id="days-together">已经 <span id="days-count">0</span> 天</div>
     </div>
     
     <div id="photo-viewer">
         <div id="viewer-close">&times;</div>
-        <img id="viewer-image" src="" alt="Photo">
-        <div id="viewer-title"></div>
+        <img id="viewer-image" src="" alt="Love Memory">
+        <div id="viewer-info">
+            <div id="viewer-title">美好瞬间</div>
+            <div id="viewer-date"></div>
+            <div id="viewer-description"></div>
+        </div>
+    </div>
+    
+    <div id="music-control">
+        <svg id="music-icon" viewBox="0 0 24 24">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+        </svg>
     </div>
 
     <!-- 导入Three.js库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js"></script>
     
     <script>
         // 配置项
         const config = {
-            radius: 250,             // 球体半径
-            particleCount: 400,      // 粒子数量
-            imageSize: 50,           // 基础图像大小
-            enableParticles: true,   // 是否启用粒子
-            autoRotateSpeed: 0.2,    // 自动旋转速度
-            themeColor: new THREE.Color(0x80a0ff),  // 主题色
-            bgColor: new THREE.Color(0x020510),     // 背景色
-            mainTitle: "照片墙",  // 主标题
-            subTitle: "动态更新点点滴滴", // 副标题
+            radius: 250,
+            particleCount: 500,
+            imageSize: 60,
+            autoRotateSpeed: 0.15,
+            themeColors: {
+                primary: new THREE.Color(0xff69b4),
+                secondary: new THREE.Color(0xffb6c1),
+                accent: new THREE.Color(0xff1493)
+            },
+            bgColor: new THREE.Color(0x1a0033),
+            startDate: new Date('2024-01-01'), // 设置你们的纪念日
+            memories: [
+                { title: "初次相遇", date: "2024-01-01", description: "在那个春天，我们的故事开始了..." },
+                { title: "第一次约会", date: "2024-02-14", description: "情人节的晚餐，烛光摇曳，你的笑容最美..." },
+                { title: "一起看日出", date: "2024-03-15", description: "山顶的日出，见证了我们的誓言..." },
+                // 可以添加更多回忆
+            ]
         };
         
         // 全局变量
-        let scene, camera, renderer, controls;
-        let photos = [];
-        let particles = [];
-        let photoGroup, particleGroup, orbitGroup;
-        let autoRotate = false;
+        let scene, camera, renderer;
+        let photos = [], hearts = [], sparkles = [];
+        let photoGroup, heartGroup, particleGroup;
+        let autoRotate = true;
         let raycaster, mouse;
-        let lightMode = 0;
-        let lights = [];
-        let stats;
-        let isAnimating = false;
+        let isHeartRaining = false;
+        let currentPhotoIndex = 0;
+        let slideshowInterval = null;
+        let musicPlaying = false;
         
-        // 预设图片路径 (用实际图片路径替换这些)
-const demoImages = [
-    "photos/photo1.jpg",
-    "photos/photo2.jpg",
-    "photos/photo3.jpg",
-    "photos/photo4.jpg",
-    "photos/photo5.jpg",
-    "photos/photo6.jpg",
-    "photos/photo7.jpg",
-    "photos/photo8.jpg",
-    "photos/photo9.jpg",
-    "photos/photo10.jpg",
-    "photos/photo11.jpg",
-    "photos/photo12.jpg",
-    "photos/photo13.jpg",
-    "photos/photo14.jpg",
-    "photos/photo15.jpg",
-    "photos/photo16.jpg",
-    "photos/photo17.jpg",
-    "photos/photo18.jpg",
-    "photos/photo19.jpg",
-    "photos/photo20.jpg",
-    "photos/photo21.jpg",
-    "photos/photo22.jpg",
-    "photos/photo23.jpg",
-    "photos/photo24.jpg",
-    "photos/photo25.jpg",
-    "photos/photo26.jpg",
-    "photos/photo27.jpg",
-    "photos/photo28.jpg",
-    "photos/photo29.jpg",
-    "photos/photo30.jpg",
-    "photos/photo31.jpg",
-    "photos/photo32.jpg",
-    "photos/photo33.jpg",
-    "photos/photo34.jpg",
-    "photos/photo35.jpg",
-    "photos/photo36.jpg",
-    "photos/photo37.jpg",
-    "photos/photo38.jpg",
-    "photos/photo39.jpg",
-    "photos/photo40.jpg",
-    "photos/photo41.jpg",
-    "photos/photo42.jpg",
-    "photos/photo43.jpg",
-    "photos/photo44.jpg",
-    "photos/photo45.jpg",
-    "photos/photo46.jpg",
-    "photos/photo47.jpg",
-    "photos/photo48.jpg",
-    "photos/photo49.jpg",
-    "photos/photo50.jpg",
-    "photos/photo51.jpg",
-    "photos/photo52.jpg",
-    "photos/photo53.jpg"
-];
+        // 预设图片路径 (保持原来的53张照片)
+        const demoImages = [
+            "photos/photo1.jpg",
+            "photos/photo2.jpg",
+            "photos/photo3.jpg",
+            "photos/photo4.jpg",
+            "photos/photo5.jpg",
+            "photos/photo6.jpg",
+            "photos/photo7.jpg",
+            "photos/photo8.jpg",
+            "photos/photo9.jpg",
+            "photos/photo10.jpg",
+            "photos/photo11.jpg",
+            "photos/photo12.jpg",
+            "photos/photo13.jpg",
+            "photos/photo14.jpg",
+            "photos/photo15.jpg",
+            "photos/photo16.jpg",
+            "photos/photo17.jpg",
+            "photos/photo18.jpg",
+            "photos/photo19.jpg",
+            "photos/photo20.jpg",
+            "photos/photo21.jpg",
+            "photos/photo22.jpg",
+            "photos/photo23.jpg",
+            "photos/photo24.jpg",
+            "photos/photo25.jpg",
+            "photos/photo26.jpg",
+            "photos/photo27.jpg",
+            "photos/photo28.jpg",
+            "photos/photo29.jpg",
+            "photos/photo30.jpg",
+            "photos/photo31.jpg",
+            "photos/photo32.jpg",
+            "photos/photo33.jpg",
+            "photos/photo34.jpg",
+            "photos/photo35.jpg",
+            "photos/photo36.jpg",
+            "photos/photo37.jpg",
+            "photos/photo38.jpg",
+            "photos/photo39.jpg",
+            "photos/photo40.jpg",
+            "photos/photo41.jpg",
+            "photos/photo42.jpg",
+            "photos/photo43.jpg",
+            "photos/photo44.jpg",
+            "photos/photo45.jpg",
+            "photos/photo46.jpg",
+            "photos/photo47.jpg",
+            "photos/photo48.jpg",
+            "photos/photo49.jpg",
+            "photos/photo50.jpg",
+            "photos/photo51.jpg",
+            "photos/photo52.jpg",
+            "photos/photo53.jpg"
+        ];
         
         // 初始化场景
         function init() {
             // 创建场景
             scene = new THREE.Scene();
-            scene.background = config.bgColor;
+            scene.fog = new THREE.Fog(config.bgColor, 100, 1500);
             
-            // 添加相机
+            // 设置相机
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
-            camera.position.z = config.radius * 2;
+            camera.position.z = config.radius * 2.5;
             
             // 创建渲染器
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
             document.getElementById('canvas-container').appendChild(renderer.domElement);
             
-            // 初始化射线器和鼠标坐标
+            // 初始化交互
             raycaster = new THREE.Raycaster();
             mouse = new THREE.Vector2();
             
             // 添加灯光
-            setupLights();
+            setupRomanticLights();
             
             // 创建组
             photoGroup = new THREE.Group();
             scene.add(photoGroup);
             
+            heartGroup = new THREE.Group();
+            scene.add(heartGroup);
+            
             particleGroup = new THREE.Group();
             scene.add(particleGroup);
             
-            orbitGroup = new THREE.Group();
-            scene.add(orbitGroup);
+            // 添加浪漫装饰
+            addRomanticDecorations();
             
-            // 添加性能监视器
-            if (window.location.hash.includes('debug')) {
-                stats = new Stats();
-                stats.showPanel(0);
-                document.body.appendChild(stats.dom);
-            }
-            
-            // 添加装饰物
-            addDecorations();
-            
-            // 添加事件监听器
+            // 设置事件监听
             setupEventListeners();
             
-            // 加载图片
+            // 加载照片
             loadImages();
             
-            // 渲染循环
+            // 创建浮动爱心
+            createFloatingHearts();
+            
+            // 更新纪念日
+            updateAnniversary();
+            
+            // 开始动画循环
             animate();
         }
         
-        // 设置灯光
-        function setupLights() {
-            // 环境光
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        // 设置浪漫灯光
+        function setupRomanticLights() {
+            // 柔和的环境光
+            const ambientLight = new THREE.AmbientLight(0xffb6c1, 0.3);
             scene.add(ambientLight);
             
-            // 方向光1
-            const light1 = new THREE.DirectionalLight(0xffffff, 0.7);
-            light1.position.set(1, 1, 1);
-            scene.add(light1);
-            lights.push(light1);
+            // 粉色主光源
+            const mainLight = new THREE.DirectionalLight(0xff69b4, 0.8);
+            mainLight.position.set(100, 100, 100);
+            mainLight.castShadow = true;
+            scene.add(mainLight);
             
-            // 方向光2
-            const light2 = new THREE.DirectionalLight(0xc9e0ff, 0.4);
-            light2.position.set(-1, -1, 1);
-            scene.add(light2);
-            lights.push(light2);
+            // 紫色补光
+            const fillLight = new THREE.DirectionalLight(0x9370db, 0.4);
+            fillLight.position.set(-100, -100, 100);
+            scene.add(fillLight);
             
-            // 点光源
-            const spotLight = new THREE.PointLight(config.themeColor, 1, 1000);
-            spotLight.position.set(0, 0, 300);
+            // 动态点光源（模拟烛光）
+            const candleLight1 = new THREE.PointLight(0xffa500, 0.5, 500);
+            candleLight1.position.set(200, 0, 200);
+            scene.add(candleLight1);
+            
+            const candleLight2 = new THREE.PointLight(0xff69b4, 0.5, 500);
+            candleLight2.position.set(-200, 0, -200);
+            scene.add(candleLight2);
+            
+            // 聚光灯效果
+            const spotLight = new THREE.SpotLight(0xff1493, 0.6);
+            spotLight.position.set(0, 300, 0);
+            spotLight.angle = Math.PI / 6;
+            spotLight.penumbra = 0.2;
             scene.add(spotLight);
-            lights.push(spotLight);
         }
         
-        // 添加装饰物
-        function addDecorations() {
-            // 添加半透明球体
-            const sphereGeometry = new THREE.SphereGeometry(config.radius * 1.05, 32, 32);
-            const sphereMaterial = new THREE.MeshBasicMaterial({
-                color: config.themeColor,
+        // 添加浪漫装饰
+        function addRomanticDecorations() {
+            // 创建发光球体
+            const glowSphereGeometry = new THREE.SphereGeometry(config.radius * 1.1, 64, 64);
+            const glowSphereMaterial = new THREE.MeshBasicMaterial({
+                color: config.themeColors.primary,
                 transparent: true,
-                opacity: 0.1,
+                opacity: 0.05,
                 side: THREE.BackSide
             });
-            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-            scene.add(sphere);
+            const glowSphere = new THREE.Mesh(glowSphereGeometry, glowSphereMaterial);
+            scene.add(glowSphere);
             
-            // 添加粒子
-            if (config.enableParticles) {
-                const particleMaterial = new THREE.PointsMaterial({
-                    color: config.themeColor,
-                    size: 1.5,
-                    transparent: true,
-                    opacity: 0.8,
-                    sizeAttenuation: true
-                });
+            // 创建星星粒子
+            const starGeometry = new THREE.BufferGeometry();
+            const starPositions = [];
+            const starColors = [];
+            
+            for (let i = 0; i < config.particleCount; i++) {
+                const radius = config.radius * (1.5 + Math.random() * 2);
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
                 
-                const particleGeometry = new THREE.BufferGeometry();
-                const particlePositions = [];
+                starPositions.push(
+                    radius * Math.sin(phi) * Math.cos(theta),
+                    radius * Math.sin(phi) * Math.sin(theta),
+                    radius * Math.cos(phi)
+                );
                 
-                for (let i = 0; i < config.particleCount; i++) {
-                    // 生成距离中心2-3倍半径的随机位置
-                    const radius = config.radius * (2 + Math.random());
-                    const theta = Math.random() * Math.PI * 2;
-                    const phi = Math.random() * Math.PI;
-                    
-                    const x = radius * Math.sin(phi) * Math.cos(theta);
-                    const y = radius * Math.sin(phi) * Math.sin(theta);
-                    const z = radius * Math.cos(phi);
-                    
-                    particlePositions.push(x, y, z);
+                // 随机颜色（粉色系）
+                const colorChoice = Math.random();
+                if (colorChoice < 0.33) {
+                    starColors.push(1, 0.41, 0.71); // Hot Pink
+                } else if (colorChoice < 0.66) {
+                    starColors.push(1, 0.71, 0.76); // Light Pink
+                } else {
+                    starColors.push(1, 0.75, 0.8); // Pink
                 }
-                
-                particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particlePositions, 3));
-                const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
-                particleGroup.add(particleSystem);
-                particles.push(particleSystem);
             }
             
-            // 添加轨道线
-            const orbitCount = 3;
-            for (let i = 0; i < orbitCount; i++) {
-                const orbitRadius = config.radius * (1.1 + i * 0.1);
-                const orbitGeometry = new THREE.BufferGeometry();
-                const orbitVertices = [];
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+            starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
+            
+            const starMaterial = new THREE.PointsMaterial({
+                size: 3,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                sizeAttenuation: true,
+                blending: THREE.AdditiveBlending
+            });
+            
+            const stars = new THREE.Points(starGeometry, starMaterial);
+            particleGroup.add(stars);
+            sparkles.push(stars);
+            
+            // 创建光环
+            createMagicRings();
+        }
+        
+        // 创建魔法光环
+        function createMagicRings() {
+            const ringCount = 3;
+            
+            for (let i = 0; i < ringCount; i++) {
+                const ringRadius = config.radius * (1.2 + i * 0.15);
+                const ringGeometry = new THREE.TorusGeometry(ringRadius, 2, 16, 100);
                 
-                // 创建一个倾斜的轨道
-                const tilt = Math.random() * Math.PI / 6; // 最大倾斜30度
-                const tiltDirection = Math.random() * Math.PI * 2;
-                
-                // 生成轨道点
-                const segments = 100;
-                for (let j = 0; j <= segments; j++) {
-                    const theta = (j / segments) * Math.PI * 2;
-                    
-                    // 基础圆
-                    let x = orbitRadius * Math.cos(theta);
-                    let y = orbitRadius * Math.sin(theta);
-                    let z = 0;
-                    
-                    // 应用倾斜
-                    const newY = y * Math.cos(tilt) - z * Math.sin(tilt);
-                    const newZ = y * Math.sin(tilt) + z * Math.cos(tilt);
-                    y = newY;
-                    z = newZ;
-                    
-                    // 应用旋转
-                    const newX = x * Math.cos(tiltDirection) - y * Math.sin(tiltDirection);
-                    const newY2 = x * Math.sin(tiltDirection) + y * Math.cos(tiltDirection);
-                    x = newX;
-                    y = newY2;
-                    
-                    orbitVertices.push(x, y, z);
-                }
-                
-                orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(orbitVertices, 3));
-                
-                // 创建轨道线
-                const intensity = 0.7 + i * 0.1;
-                const orbitMaterial = new THREE.LineBasicMaterial({ 
-                    color: config.themeColor, 
-                    transparent: true, 
-                    opacity: 0.3 * intensity
+                const ringMaterial = new THREE.MeshBasicMaterial({
+                    color: i % 2 === 0 ? config.themeColors.primary : config.themeColors.secondary,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
                 });
                 
-                const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
-                orbitGroup.add(orbit);
+                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                
+                // 随机倾斜
+                ring.rotation.x = Math.random() * Math.PI;
+                ring.rotation.y = Math.random() * Math.PI;
+                
+                scene.add(ring);
+                
+                // 添加旋转动画
+                ring.userData = {
+                    rotationSpeed: {
+                        x: (Math.random() - 0.5) * 0.01,
+                        y: (Math.random() - 0.5) * 0.01,
+                        z: (Math.random() - 0.5) * 0.01
+                    }
+                };
             }
         }
         
-        // 设置事件监听器
-        function setupEventListeners() {
-            // 鼠标拖动控制
-            document.addEventListener('mousedown', onMouseDown);
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
+        // 创建照片
+        function createPhoto(texture, index, totalPhotos) {
+            // 使用黄金螺旋分布
+            const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+            const theta = goldenAngle * index;
+            const y = 1 - (index / (totalPhotos - 1)) * 2;
+            const radius = Math.sqrt(1 - y * y);
             
-            // 鼠标滚轮缩放
-            document.addEventListener('wheel', onMouseWheel);
+            const position = new THREE.Vector3(
+                config.radius * radius * Math.cos(theta),
+                config.radius * y,
+                config.radius * radius * Math.sin(theta)
+            );
             
-            // 鼠标点击
-            document.addEventListener('click', onMouseClick);
+            // 创建照片框架
+            const frameGeometry = new THREE.BoxGeometry(
+                config.imageSize * 1.1,
+                config.imageSize * 1.1,
+                5
+            );
             
-            // 键盘控制
-            document.addEventListener('keydown', onKeyDown);
+            const frameMaterial = new THREE.MeshPhongMaterial({
+                color: 0xffd700,
+                emissive: 0xffa500,
+                emissiveIntensity: 0.2,
+                metalness: 0.8,
+                roughness: 0.2
+            });
             
-            // 窗口大小调整
-            window.addEventListener('resize', onWindowResize);
+            const frame = new THREE.Mesh(frameGeometry, frameMaterial);
             
-            // 控制面板按钮
-            document.getElementById('btn-auto-rotate').addEventListener('click', toggleAutoRotate);
-            document.getElementById('btn-reset-view').addEventListener('click', resetView);
-            document.getElementById('btn-randomize').addEventListener('click', randomizePhotos);
-            document.getElementById('btn-toggle-light').addEventListener('click', toggleLights);
-            document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
+            // 创建照片平面
+            const photoGeometry = new THREE.PlaneGeometry(config.imageSize, config.imageSize);
+            const photoMaterial = new THREE.MeshBasicMaterial({
+                map: texture,
+                side: THREE.DoubleSide
+            });
             
-            // 照片查看器关闭按钮
-            document.getElementById('viewer-close').addEventListener('click', closePhotoViewer);
+            const photo = new THREE.Mesh(photoGeometry, photoMaterial);
+            photo.position.z = 3;
+            
+            // 组合照片和框架
+            const photoGroup = new THREE.Group();
+            photoGroup.add(frame);
+            photoGroup.add(photo);
+            
+            // 设置位置和朝向
+            photoGroup.position.copy(position);
+            photoGroup.lookAt(0, 0, 0);
+            
+            // 添加发光效果
+            const glowGeometry = new THREE.PlaneGeometry(
+                config.imageSize * 1.3,
+                config.imageSize * 1.3
+            );
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: config.themeColors.primary,
+                transparent: true,
+                opacity: 0,
+                side: THREE.DoubleSide
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            glow.position.z = -1;
+            photoGroup.add(glow);
+            
+            // 存储数据
+            photoGroup.userData = {
+                index: index,
+                originalPosition: position.clone(),
+                glow: glow,
+                memory: config.memories[index % config.memories.length] || {
+                    title: `照片 ${index + 1}`,
+                    date: new Date().toLocaleDateString(),
+                    description: "美好的回忆..."
+                }
+            };
+            
+            this.photoGroup.add(photoGroup);
+            photos.push(photoGroup);
+            
+            // 添加入场动画
+            photoGroup.scale.set(0, 0, 0);
+            new TWEEN.Tween(photoGroup.scale)
+                .to({ x: 1, y: 1, z: 1 }, 1000)
+                .delay(index * 50)
+                .easing(TWEEN.Easing.Elastic.Out)
+                .start();
+        }
+        
+        // 创建浮动爱心
+        function createFloatingHearts() {
+            setInterval(() => {
+                if (Math.random() < 0.3) {
+                    const heart = document.createElement('div');
+                    heart.className = 'floating-heart';
+                    heart.innerHTML = '❤️';
+                    heart.style.left = Math.random() * window.innerWidth + 'px';
+                    heart.style.animationDuration = (5 + Math.random() * 5) + 's';
+                    heart.style.fontSize = (15 + Math.random() * 20) + 'px';
+                    document.body.appendChild(heart);
+                    
+                    setTimeout(() => {
+                        heart.remove();
+                    }, 8000);
+                }
+            }, 2000);
+        }
+        
+        // 爱心雨效果
+        function startHeartRain() {
+            isHeartRaining = true;
+            
+            const createHeart3D = () => {
+                const heartShape = new THREE.Shape();
+                const x = 0, y = 0;
+                
+                heartShape.moveTo(x + 5, y + 5);
+                heartShape.bezierCurveTo(x + 5, y + 2.5, x + 2, y, x, y);
+                heartShape.bezierCurveTo(x - 3, y, x - 3, y + 3.5, x - 3, y + 3.5);
+                heartShape.bezierCurveTo(x - 3, y + 5.5, x - 1.5, y + 7.7, x + 2.5, y + 9.5);
+                heartShape.bezierCurveTo(x + 6, y + 7.7, x + 8, y + 4.5, x + 8, y + 3.5);
+                heartShape.bezierCurveTo(x + 8, y + 3.5, x + 8, y, x + 5, y);
+                
+                const geometry = new THREE.ShapeGeometry(heartShape);
+                const material = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(Math.random() * 0.1 + 0.9, 1, 0.7),
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                
+                const heart = new THREE.Mesh(geometry, material);
+                heart.position.set(
+                    (Math.random() - 0.5) * config.radius * 4,
+                    config.radius * 2,
+                    (Math.random() - 0.5) * config.radius * 4
+                );
+                heart.scale.set(5, 5, 5);
+                heart.rotation.z = Math.random() * Math.PI;
+                
+                heartGroup.add(heart);
+                hearts.push(heart);
+                
+                // 动画
+                const fallSpeed = 2 + Math.random() * 3;
+                const swaySpeed = 0.02 + Math.random() * 0.03;
+                const rotateSpeed = (Math.random() - 0.5) * 0.1;
+                
+                heart.userData = {
+                    fallSpeed: fallSpeed,
+                    swaySpeed: swaySpeed,
+                    rotateSpeed: rotateSpeed,
+                    initialX: heart.position.x,
+                    time: 0
+                };
+            };
+            
+            // 创建多个爱心
+            const heartInterval = setInterval(() => {
+                if (!isHeartRaining) {
+                    clearInterval(heartInterval);
+                    return;
+                }
+                createHeart3D();
+            }, 200);
+            
+            // 10秒后停止
+            setTimeout(() => {
+                isHeartRaining = false;
+            }, 10000);
+        }
+        
+        // 更新纪念日
+        function updateAnniversary() {
+            const now = new Date();
+            const diff = now - config.startDate;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            
+            document.getElementById('days-count').textContent = days;
+            document.getElementById('date-viewer').style.display = 'block';
+        }
+        
+        // 幻灯片播放
+        function startSlideshow() {
+            if (slideshowInterval) {
+                clearInterval(slideshowInterval);
+                slideshowInterval = null;
+                return;
+            }
+            
+            slideshowInterval = setInterval(() => {
+                currentPhotoIndex = (currentPhotoIndex + 1) % photos.length;
+                const photo = photos[currentPhotoIndex];
+                
+                // 聚焦到当前照片
+                const targetPosition = photo.userData.originalPosition.clone().normalize().multiplyScalar(config.radius * 1.5);
+                
+                new TWEEN.Tween(camera.position)
+                    .to(targetPosition, 2000)
+                    .easing(TWEEN.Easing.Quadratic.InOut)
+                    .start();
+                
+                // 高亮当前照片
+                new TWEEN.Tween(photo.userData.glow.material)
+                    .to({ opacity: 0.5 }, 500)
+                    .onComplete(() => {
+                        new TWEEN.Tween(photo.userData.glow.material)
+                            .to({ opacity: 0 }, 1500)
+                            .start();
+                    })
+                    .start();
+            }, 4000);
         }
         
         // 加载图片
         function loadImages() {
-            // 在实际应用中，应该从用户提供的文件夹或服务器获取图片列表
-            // 这里使用演示图片列表
-            
-            const imageUrls = demoImages;
-            
-            // 模拟添加更多图片以达到50个左右
-            const extendedUrls = [];
-            while (extendedUrls.length < 50) {
-                extendedUrls.push(...imageUrls);
-            }
-            
-            // 截取需要的数量
-            const finalUrls = extendedUrls.slice(0, 53);
-            
-            // 更新进度条最大值
-            const totalImages = finalUrls.length;
+            const totalImages = demoImages.length;
             let loadedImages = 0;
             
-            // 加载图片
-            finalUrls.forEach((url, index) => {
+            demoImages.forEach((url, index) => {
                 const loader = new THREE.TextureLoader();
-                
-                // 添加负载进度处理
                 loader.load(
                     url,
                     (texture) => {
-                        // 图片加载成功
-                        createPhoto(texture, index, finalUrls.length);
-                        
-                        // 更新加载进度
+                        createPhoto.call(this, texture, index, totalImages);
                         loadedImages++;
+                        
                         const progress = (loadedImages / totalImages) * 100;
                         document.getElementById('progress-bar').style.width = progress + '%';
-                        document.getElementById('loading-text').textContent = 
-                            `正在加载 ${loadedImages}/${totalImages}`;
                         
-                        // 检查是否所有图片都已加载
                         if (loadedImages === totalImages) {
-                            // 隐藏加载屏幕
                             setTimeout(() => {
                                 document.getElementById('loading-screen').style.display = 'none';
-                            }, 500);
+                            }, 1000);
                         }
                     },
-                    // 进度回调
-                    (xhr) => {
-                        // 可以使用xhr.loaded / xhr.total来显示每个文件的进度
-                    },
-                    // 错误回调
-                    (error) => {
-                        console.error('加载图片出错:', error);
-                        
-                        // 更新加载进度（即使出错）
+                    undefined,
+                    () => {
                         loadedImages++;
-                        const progress = (loadedImages / totalImages) * 100;
-                        document.getElementById('progress-bar').style.width = progress + '%';
+                        if (loadedImages === totalImages) {
+                            document.getElementById('loading-screen').style.display = 'none';
+                        }
                     }
                 );
             });
         }
         
-        // 创建照片
-        function createPhoto(texture, index, totalPhotos) {
-            // 使用Fibonacci球面分布算法计算位置
-            const phi = Math.acos(-1 + (2 * index) / totalPhotos);
-            const theta = Math.sqrt(totalPhotos * Math.PI) * phi;
+        // 设置事件监听
+        function setupEventListeners() {
+            // 鼠标交互
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
             
-            // 添加随机扰动
-            const randomFactor = 0.05;
-            const randomOffset = new THREE.Vector3(
-                (Math.random() - 0.5) * randomFactor,
-                (Math.random() - 0.5) * randomFactor,
-                (Math.random() - 0.5) * randomFactor
-            );
-            
-            // 计算位置
-            const x = Math.cos(theta) * Math.sin(phi);
-            const y = Math.sin(theta) * Math.sin(phi);
-            const z = Math.cos(phi);
-            
-            const position = new THREE.Vector3(
-                config.radius * (x + randomOffset.x),
-                config.radius * (y + randomOffset.y),
-                config.radius * (z + randomOffset.z)
-            );
-            
-            // 将位置归一化
-            position.normalize().multiplyScalar(config.radius);
-            
-            // 计算平面法向量
-            const normal = position.clone().normalize();
-            
-            // 创建正交向量
-            let tangent;
-            if (Math.abs(normal.x) < Math.abs(normal.y) && Math.abs(normal.x) < Math.abs(normal.z)) {
-                tangent = new THREE.Vector3(0, -normal.z, normal.y);
-            } else if (Math.abs(normal.y) < Math.abs(normal.z)) {
-                tangent = new THREE.Vector3(-normal.z, 0, normal.x);
-            } else {
-                tangent = new THREE.Vector3(-normal.y, normal.x, 0);
-            }
-            tangent.normalize();
-            
-            const bitangent = new THREE.Vector3();
-            bitangent.crossVectors(normal, tangent);
-            
-            // 根据图片尺寸调整平面大小
-            const imageRatio = texture.image.width / texture.image.height;
-            const photoWidth = config.imageSize * imageRatio;
-            const photoHeight = config.imageSize;
-            
-            // 创建平面几何体
-            const geometry = new THREE.PlaneGeometry(photoWidth, photoHeight);
-            
-            // 创建材质
-            const material = new THREE.MeshBasicMaterial({
-                map: texture,
-                side: THREE.DoubleSide
+            document.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
             });
             
-            // 创建网格
-            const photo = new THREE.Mesh(geometry, material);
-            
-            // 定位到正确的位置和方向
-            photo.position.copy(position);
-            
-            // 将平面朝向正确的方向
-            const lookAtPosition = position.clone().add(normal);
-            photo.lookAt(lookAtPosition);
-            
-            // 稍微随机旋转
-            photo.rotateZ(Math.random() * Math.PI * 0.1);
-            
-            // 存储原始位置信息用于动画
-            photo.userData = {
-                originalPosition: position.clone(),
-                normal: normal.clone(),
-                index: index,
-                imageName: `Photo ${index + 1}`,
-                imageUrl: texture.image.src
-            };
-            
-            // 添加照片边框
-            const edgeGeometry = new THREE.EdgesGeometry(geometry);
-            const edgeMaterial = new THREE.LineBasicMaterial({
-                color: config.themeColor,
-                transparent: true,
-                opacity: 0.8
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) {
+                    // 鼠标悬停检测
+                    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                    
+                    raycaster.setFromCamera(mouse, camera);
+                    const intersects = raycaster.intersectObjects(photos, true);
+                    
+                    // 重置所有照片的发光
+                    photos.forEach(photo => {
+                        if (photo.userData.glow) {
+                            photo.userData.glow.material.opacity = 0;
+                        }
+                    });
+                    
+                    // 高亮悬停的照片
+                    if (intersects.length > 0) {
+                        const photo = intersects[0].object.parent;
+                        if (photo.userData && photo.userData.glow) {
+                            photo.userData.glow.material.opacity = 0.3;
+                        }
+                    }
+                    return;
+                }
+                
+                const deltaMove = {
+                    x: e.clientX - previousMousePosition.x,
+                    y: e.clientY - previousMousePosition.y
+                };
+                
+                photoGroup.rotation.y += deltaMove.x * 0.005;
+                photoGroup.rotation.x += deltaMove.y * 0.005;
+                heartGroup.rotation.copy(photoGroup.rotation);
+                particleGroup.rotation.copy(photoGroup.rotation);
+                
+                previousMousePosition = { x: e.clientX, y: e.clientY };
             });
-            const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
-            photo.add(edges);
             
-            // 添加到场景
-            photoGroup.add(photo);
-            photos.push(photo);
-        }
-        
-        // 鼠标按下事件
-        let isDragging = false;
-        let previousMousePosition = { x: 0, y: 0 };
-        
-        function onMouseDown(event) {
-            isDragging = true;
-            previousMousePosition = {
-                x: event.clientX,
-                y: event.clientY
-            };
-        }
-        
-        function onMouseMove(event) {
-            if (!isDragging) return;
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
             
-            const deltaMove = {
-                x: event.clientX - previousMousePosition.x,
-                y: event.clientY - previousMousePosition.y
-            };
+            // 鼠标滚轮
+            document.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = Math.sign(e.deltaY) * 0.1;
+                const distance = camera.position.length();
+                const newDistance = Math.max(config.radius * 1.2, Math.min(config.radius * 4, distance * (1 + delta)));
+                camera.position.normalize().multiplyScalar(newDistance);
+            });
             
-            // 旋转场景
-            const rotationSpeed = 0.005;
-            photoGroup.rotation.y += deltaMove.x * rotationSpeed;
-            photoGroup.rotation.x += deltaMove.y * rotationSpeed;
-            
-            // 同步其他元素旋转
-            particleGroup.rotation.copy(photoGroup.rotation);
-            orbitGroup.rotation.copy(photoGroup.rotation);
-            
-            previousMousePosition = {
-                x: event.clientX,
-                y: event.clientY
-            };
-        }
-        
-        function onMouseUp(event) {
-            isDragging = false;
-        }
-        
-        // 鼠标滚轮事件
-        function onMouseWheel(event) {
-            event.preventDefault();
-            
-            // 缩放相机
-            const zoomSensitivity = 0.1;
-            const delta = Math.sign(event.deltaY) * zoomSensitivity;
-            
-            // 更新相机位置
-            const direction = new THREE.Vector3().subVectors(camera.position, new THREE.Vector3(0, 0, 0));
-            const distance = direction.length();
-            
-            // 限制缩放范围
-            const newDistance = Math.max(config.radius * 1.2, Math.min(config.radius * 4, distance * (1 + delta)));
-            
-            direction.normalize().multiplyScalar(newDistance);
-            camera.position.copy(direction);
-        }
-        
-        // 鼠标点击事件
-        function onMouseClick(event) {
-            // 通过射线检测判断点击了哪个照片
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-            
-            raycaster.setFromCamera(mouse, camera);
-            
-            const intersects = raycaster.intersectObjects(photos);
-            
-            if (intersects.length > 0) {
-                const photo = intersects[0].object;
-                showPhotoViewer(photo);
-            }
-        }
-        
-        // 键盘事件
-        function onKeyDown(event) {
-            switch (event.key.toLowerCase()) {
-                case 'h': // 显示/隐藏帮助
-                    const helpPanel = document.getElementById('help-panel');
-                    helpPanel.style.display = helpPanel.style.display === 'none' ? 'block' : 'none';
-                    break;
+            // 点击照片
+            document.addEventListener('click', (e) => {
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
                 
-                case 'c': // 显示/隐藏控制面板
-                    const controlPanel = document.getElementById('control-panel');
-                    controlPanel.style.display = controlPanel.style.display === 'none' ? 'block' : 'none';
-                    break;
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(photos, true);
                 
-                case 'r': // 重置视图
-                    resetView();
-                    break;
-                
-                case 'a': // 切换自动旋转
-                    toggleAutoRotate();
-                    break;
-                
-                case 'l': // 切换灯光
-                    toggleLights();
-                    break;
-                
-                case 'f': // 全屏
-                    toggleFullscreen();
-                    break;
-            }
-        }
-        
-        // 窗口大小改变事件
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+                if (intersects.length > 0) {
+                    const photo = intersects[0].object.parent;
+                    showPhotoViewer(photo);
+                }
+            });
+            
+            // 键盘控制
+            document.addEventListener('keydown', (e) => {
+                switch(e.key.toLowerCase()) {
+                    case 'h':
+                        const helpPanel = document.getElementById('help-panel');
+                        helpPanel.style.display = helpPanel.style.display === 'none' ? 'block' : 'none';
+                        break;
+                    case 'c':
+                        const controlPanel = document.getElementById('control-panel');
+                        controlPanel.style.display = controlPanel.style.display === 'none' ? 'block' : 'none';
+                        break;
+                    case 'r':
+                        resetView();
+                        break;
+                    case 'a':
+                        toggleAutoRotate();
+                        break;
+                    case 'l':
+                        toggleLightMode();
+                        break;
+                    case ' ':
+                        e.preventDefault();
+                        startHeartRain();
+                        break;
+                }
+            });
+            
+            // 控制面板按钮
+            document.getElementById('btn-auto-rotate').addEventListener('click', toggleAutoRotate);
+            document.getElementById('btn-reset-view').addEventListener('click', resetView);
+            document.getElementById('btn-heart-rain').addEventListener('click', startHeartRain);
+            document.getElementById('btn-slideshow').addEventListener('click', startSlideshow);
+            document.getElementById('btn-toggle-light').addEventListener('click', toggleLightMode);
+            document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
+            
+            // 查看器关闭
+            document.getElementById('viewer-close').addEventListener('click', closePhotoViewer);
+            
+            // 音乐控制
+            document.getElementById('music-control').addEventListener('click', toggleMusic);
+            
+            // 窗口调整
+            window.addEventListener('resize', onWindowResize);
         }
         
         // 显示照片查看器
         function showPhotoViewer(photo) {
             const viewer = document.getElementById('photo-viewer');
-            const viewerImage = document.getElementById('viewer-image');
-            const viewerTitle = document.getElementById('viewer-title');
+            const memory = photo.userData.memory;
             
-            viewerImage.src = photo.userData.imageUrl;
-            viewerTitle.textContent = photo.userData.imageName;
+            // 使用photo的userData中存储的imageUrl
+            document.getElementById('viewer-image').src = photo.userData.imageUrl || demoImages[photo.userData.index % demoImages.length];
+            document.getElementById('viewer-title').textContent = memory.title;
+            document.getElementById('viewer-date').textContent = memory.date;
+            document.getElementById('viewer-description').textContent = memory.description;
             
             viewer.style.display = 'flex';
+            
+            // 添加显示动画
+            viewer.style.opacity = '0';
+            setTimeout(() => {
+                viewer.style.transition = 'opacity 0.5s';
+                viewer.style.opacity = '1';
+            }, 10);
         }
         
         // 关闭照片查看器
         function closePhotoViewer() {
             const viewer = document.getElementById('photo-viewer');
-            viewer.style.display = 'none';
+            viewer.style.opacity = '0';
+            setTimeout(() => {
+                viewer.style.display = 'none';
+            }, 500);
         }
         
         // 切换自动旋转
         function toggleAutoRotate() {
             autoRotate = !autoRotate;
-            
-            // 更新按钮文字
-            const button = document.getElementById('btn-auto-rotate');
-            button.textContent = autoRotate ? '停止旋转' : '自动旋转';
+            document.getElementById('btn-auto-rotate').textContent = autoRotate ? '💫 停止旋转' : '💫 自动旋转';
         }
         
         // 重置视图
         function resetView() {
-            // 使用TWEEN创建平滑动画
-            const targetRotation = { x: 0, y: 0, z: 0 };
-            const currentRotation = { 
-                x: photoGroup.rotation.x, 
-                y: photoGroup.rotation.y, 
-                z: photoGroup.rotation.z 
-            };
-            
-            new TWEEN.Tween(currentRotation)
-                .to(targetRotation, 1000)
+            new TWEEN.Tween(photoGroup.rotation)
+                .to({ x: 0, y: 0, z: 0 }, 1500)
                 .easing(TWEEN.Easing.Quadratic.Out)
-                .onUpdate(() => {
-                    photoGroup.rotation.x = currentRotation.x;
-                    photoGroup.rotation.y = currentRotation.y;
-                    photoGroup.rotation.z = currentRotation.z;
-                    
-                    particleGroup.rotation.copy(photoGroup.rotation);
-                    orbitGroup.rotation.copy(photoGroup.rotation);
-                })
                 .start();
                 
-            // 重置相机位置
-            const currentCamPosition = camera.position.clone();
-            const targetCamPosition = new THREE.Vector3(0, 0, config.radius * 2);
-            
-            new TWEEN.Tween(currentCamPosition)
-                .to(targetCamPosition, 1000)
+            new TWEEN.Tween(camera.position)
+                .to({ x: 0, y: 0, z: config.radius * 2.5 }, 1500)
                 .easing(TWEEN.Easing.Quadratic.Out)
-                .onUpdate(() => {
-                    camera.position.copy(currentCamPosition);
-                })
                 .start();
         }
         
-        // 随机排列照片
-        function randomizePhotos() {
-            if (isAnimating) return;
-            isAnimating = true;
-            
-            photos.forEach(photo => {
-                // 生成新的随机位置
-                const phi = Math.acos(-1 + 2 * Math.random());
-                const theta = Math.sqrt(photos.length * Math.PI) * phi;
-                
-                const x = Math.cos(theta) * Math.sin(phi);
-                const y = Math.sin(theta) * Math.sin(phi);
-                const z = Math.cos(phi);
-                
-                const newPosition = new THREE.Vector3(
-                    config.radius * x,
-                    config.radius * y,
-                    config.radius * z
-                );
-                
-                // 为了保持朝向，需要计算新的方向
-                const newNormal = newPosition.clone().normalize();
-                
-                // 动画到新位置
-                new TWEEN.Tween(photo.position)
-                    .to(newPosition, 2000)
-                    .easing(TWEEN.Easing.Cubic.InOut)
-                    .onUpdate(() => {
-                        // 更新朝向
-                        const lookAtPosition = photo.position.clone().add(newNormal);
-                        photo.lookAt(lookAtPosition);
-                    })
-                    .start();
-                
-                // 更新userData中的位置信息
-                photo.userData.originalPosition = newPosition;
-                photo.userData.normal = newNormal;
-            });
-            
-            // 设置动画完成标记
-            setTimeout(() => {
-                isAnimating = false;
-            }, 2000);
-        }
-        
-        // 切换灯光效果
-        function toggleLights() {
+        // 切换灯光模式
+        let lightMode = 0;
+        function toggleLightMode() {
             lightMode = (lightMode + 1) % 3;
             
-            switch (lightMode) {
-                case 0: // 默认灯光
-                    lights[0].color.set(0xffffff);
-                    lights[1].color.set(0xc9e0ff);
-                    lights[2].color.set(config.themeColor);
+            switch(lightMode) {
+                case 0: // 浪漫粉色
+                    scene.fog.color.set(0x1a0033);
                     break;
-                
-                case 1: // 暖色调
-                    lights[0].color.set(0xffeda3);
-                    lights[1].color.set(0xffb769);
-                    lights[2].color.set(0xff8a54);
+                case 1: // 梦幻紫色
+                    scene.fog.color.set(0x2a0845);
                     break;
-                
-                case 2: // 冷色调
-                    lights[0].color.set(0xa3d9ff);
-                    lights[1].color.set(0x69c5ff);
-                    lights[2].color.set(0x548fff);
+                case 2: // 温暖橙色
+                    scene.fog.color.set(0x4a1425);
                     break;
             }
         }
@@ -916,180 +1165,87 @@ const demoImages = [
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+                document.exitFullscreen();
             }
+        }
+        
+        // 切换音乐
+        function toggleMusic() {
+            musicPlaying = !musicPlaying;
+            const icon = document.getElementById('music-icon');
+            
+            if (musicPlaying) {
+                icon.style.animation = 'spin 2s linear infinite';
+                // 这里可以添加实际的音乐播放代码
+            } else {
+                icon.style.animation = 'none';
+            }
+        }
+        
+        // 窗口大小调整
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         }
         
         // 动画循环
         function animate() {
             requestAnimationFrame(animate);
             
-            if (stats) stats.begin();
-            
-            // 更新TWEEN
             TWEEN.update();
             
             // 自动旋转
             if (autoRotate) {
                 photoGroup.rotation.y += config.autoRotateSpeed * 0.01;
+                heartGroup.rotation.copy(photoGroup.rotation);
                 particleGroup.rotation.copy(photoGroup.rotation);
-                orbitGroup.rotation.copy(photoGroup.rotation);
             }
             
-            // 更新粒子闪烁
-            if (config.enableParticles && particles.length > 0) {
-                const positions = particles[0].geometry.attributes.position.array;
-                for (let i = 0; i < positions.length; i += 3) {
-                    if (Math.random() < 0.002) { // 偶尔改变一些粒子的位置
-                        const radius = config.radius * (2 + Math.random() * 0.5);
-                        const theta = Math.random() * Math.PI * 2;
-                        const phi = Math.random() * Math.PI;
-                        
-                        positions[i] = radius * Math.sin(phi) * Math.cos(theta);
-                        positions[i+1] = radius * Math.sin(phi) * Math.sin(theta);
-                        positions[i+2] = radius * Math.cos(phi);
-                    }
+            // 更新爱心雨
+            hearts.forEach((heart, index) => {
+                heart.position.y -= heart.userData.fallSpeed;
+                heart.userData.time += heart.userData.swaySpeed;
+                heart.position.x = heart.userData.initialX + Math.sin(heart.userData.time) * 20;
+                heart.rotation.z += heart.userData.rotateSpeed;
+                
+                if (heart.position.y < -config.radius * 2) {
+                    heartGroup.remove(heart);
+                    hearts.splice(index, 1);
                 }
-                particles[0].geometry.attributes.position.needsUpdate = true;
+            });
+            
+            // 更新闪烁粒子
+            if (sparkles.length > 0) {
+                const time = Date.now() * 0.001;
+                sparkles[0].material.opacity = 0.6 + Math.sin(time * 2) * 0.2;
             }
             
-            // 更新点光源位置
-            if (lights[2]) {
-                const time = Date.now() * 0.0005;
-                lights[2].position.x = Math.sin(time * 1.1) * config.radius * 1.5;
-                lights[2].position.y = Math.cos(time * 1.3) * config.radius * 1.5;
-                lights[2].position.z = Math.sin(time * 1.5) * config.radius + config.radius * 1.5;
-            }
+            // 更新魔法光环
+            scene.children.forEach(child => {
+                if (child.userData && child.userData.rotationSpeed) {
+                    child.rotation.x += child.userData.rotationSpeed.x;
+                    child.rotation.y += child.userData.rotationSpeed.y;
+                    child.rotation.z += child.userData.rotationSpeed.z;
+                }
+            });
             
-            // 渲染场景
             renderer.render(scene, camera);
-            
-            if (stats) stats.end();
         }
         
-        // 设置自定义标题和副标题
-        function setTitles(mainTitle, subTitle) {
-            if (mainTitle) {
-                document.getElementById('main-title').textContent = mainTitle;
-                config.mainTitle = mainTitle;
+        // CSS动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
             }
-            
-            if (subTitle) {
-                document.getElementById('subtitle').textContent = subTitle;
-                config.subTitle = subTitle;
-            }
-        }
+        `;
+        document.head.appendChild(style);
         
-        // 加载本地图片
-        function handleLocalImages(fileList) {
-            // 清空现有照片
-            photos.forEach(photo => {
-                photoGroup.remove(photo);
-            });
-            photos = [];
-            
-            const files = Array.from(fileList);
-            const totalFiles = files.length;
-            let loadedFiles = 0;
-            
-            // 显示加载屏幕
-            document.getElementById('loading-screen').style.display = 'flex';
-            document.getElementById('loading-text').textContent = '准备加载...';
-            document.getElementById('progress-bar').style.width = '0%';
-            
-            // 逐个加载图片
-            files.forEach((file, index) => {
-                if (!file.type.match('image.*')) {
-                    loadedFiles++;
-                    updateLoadingProgress(loadedFiles, totalFiles);
-                    return;
-                }
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    // 创建图片元素来获取尺寸
-                    const img = new Image();
-                    img.onload = function() {
-                        // 创建纹理
-                        const texture = new THREE.Texture(img);
-                        texture.needsUpdate = true;
-                        
-                        // 创建照片
-                        createPhoto(texture, index, totalFiles);
-                        
-                        // 更新进度
-                        loadedFiles++;
-                        updateLoadingProgress(loadedFiles, totalFiles);
-                        
-                        // 检查是否所有文件都已加载
-                        if (loadedFiles === totalFiles) {
-                            // 隐藏加载屏幕
-                            setTimeout(() => {
-                                document.getElementById('loading-screen').style.display = 'none';
-                            }, 500);
-                        }
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-        
-        function updateLoadingProgress(loaded, total) {
-            const progress = (loaded / total) * 100;
-            document.getElementById('progress-bar').style.width = progress + '%';
-            document.getElementById('loading-text').textContent = 
-                `正在加载 ${loaded}/${total}`;
-        }
-        
-        // 添加拖放文件功能
-        function setupFileDrop() {
-            const dropArea = document.body;
-            
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, preventDefaults, false);
-            });
-            
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropArea.addEventListener(eventName, highlight, false);
-            });
-            
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, unhighlight, false);
-            });
-            
-            function highlight() {
-                dropArea.classList.add('highlight');
-            }
-            
-            function unhighlight() {
-                dropArea.classList.remove('highlight');
-            }
-            
-            dropArea.addEventListener('drop', handleDrop, false);
-            
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                
-                handleLocalImages(files);
-            }
-        }
-        
-        // 当页面加载完成后初始化
+        // 初始化
         window.onload = function() {
             init();
-            setupFileDrop();
-            
-            // 设置自定义标题
-            setTitles(config.mainTitle, config.subTitle);
         };
     </script>
 </body>
