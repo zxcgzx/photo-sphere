@@ -14,62 +14,6 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        // 创建星空背景
-        function createStarField() {
-            const canvas = document.getElementById('stars-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            // 创建渐变背景
-            const gradient = ctx.createRadialGradient(
-                canvas.width / 2, canvas.height / 2, 0,
-                canvas.width / 2, canvas.height / 2, canvas.width / 2
-            );
-            gradient.addColorStop(0, '#0a0a2a');
-            gradient.addColorStop(0.5, '#000814');
-            gradient.addColorStop(1, '#000000');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // 创建星星
-            for (let i = 0; i < config.starsCount; i++) {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                const radius = Math.random() * 1.5;
-                const opacity = Math.random() * 0.8 + 0.2;
-                
-                ctx.beginPath();
-                ctx.arc(x, y, radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-                ctx.fill();
-                
-                // 添加发光效果
-                if (Math.random() > 0.95) {
-                    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 4);
-                    glow.addColorStop(0, `rgba(255, 255, 255, ${opacity})`);
-                    glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                    ctx.fillStyle = glow;
-                    ctx.fillRect(x - radius * 4, y - radius * 4, radius * 8, radius * 8);
-                }
-            }
-            
-            // 添加星云效果
-            for (let i = 0; i < 3; i++) {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                const radius = Math.random() * 200 + 100;
-                const color = config.galaxyColors[Math.floor(Math.random() * config.galaxyColors.length)];
-                
-                const nebula = ctx.createRadialGradient(x, y, 0, x, y, radius);
-                nebula.addColorStop(0, color + '20');
-                nebula.addColorStop(0.5, color + '10');
-                nebula.addColorStop(1, 'transparent');
-                ctx.fillStyle = nebula;
-                ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-            }
-        }
         
         body {
             margin: 0;
@@ -135,8 +79,33 @@
         }
         
         @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(5deg); }
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .control-btn:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            transition: all 0.5s;
+        }
+        
+        .control-btn:hover:after {
+            animation: shimmer 0.8s ease-in-out;
         }
         
         /* 控制面板 - 移动端友好 */
@@ -174,6 +143,8 @@
             gap: 5px;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
         }
         
         .control-btn:active {
@@ -182,7 +153,19 @@
         
         .control-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+            background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+        }
+        
+        .control-btn:before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 25px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
         }
         
         /* 统计信息 */
@@ -424,27 +407,92 @@
         /* 移动端适配 */
         @media (max-width: 768px) {
             #main-title {
-                font-size: 22px;
+                font-size: 20px;
+                flex-direction: column;
+                gap: 5px;
             }
             
             .emoji-decoration {
-                font-size: 20px;
+                font-size: 18px;
+            }
+            
+            #title-container {
+                top: 10px;
             }
             
             #control-panel {
                 bottom: 10px;
-                padding: 10px;
-                gap: 8px;
+                padding: 8px;
+                gap: 6px;
+                max-width: 95%;
+                flex-wrap: wrap;
             }
             
             .control-btn {
-                padding: 8px 16px;
-                font-size: 12px;
+                padding: 6px 12px;
+                font-size: 11px;
+                min-width: auto;
+                flex: 1;
+                min-width: 80px;
             }
             
             #stats-panel {
+                font-size: 11px;
+                padding: 8px;
+                left: 10px;
+                top: 80px;
+            }
+            
+            #loading-text {
+                font-size: 14px;
+                text-align: center;
+                padding: 0 20px;
+            }
+            
+            #gesture-hint {
+                font-size: 14px;
+                padding: 15px 20px;
+                max-width: 80%;
+            }
+            
+            .hint-icon {
+                font-size: 30px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #main-title {
+                font-size: 18px;
+            }
+            
+            .control-btn {
+                padding: 5px 8px;
+                font-size: 10px;
+                min-width: 70px;
+            }
+            
+            #control-panel {
+                gap: 4px;
+                padding: 6px;
+            }
+            
+            #stats-panel {
+                font-size: 10px;
+                padding: 6px;
+            }
+        }
+        
+        /* 优化触摸体验 */
+        @media (hover: none) and (pointer: coarse) {
+            .control-btn {
+                min-height: 44px;
                 font-size: 12px;
-                padding: 10px;
+            }
+            
+            #viewer-close {
+                width: 50px;
+                height: 50px;
+                font-size: 28px;
             }
         }
     </style>
@@ -472,6 +520,9 @@
             <span>我们的小宇宙</span>
             <span class="emoji-decoration">✨</span>
         </h1>
+        <div style="margin-top: 10px; font-size: 14px; opacity: 0.8; color: #9bb5ff;">
+            Created by Boning, TJUT 🚀
+        </div>
     </div>
     
     <div id="stats-panel">
@@ -535,6 +586,63 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js"></script>
     
     <script>
+        // 创建星空背景
+        function createStarField() {
+            const canvas = document.getElementById('stars-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // 创建渐变背景
+            const gradient = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, 0,
+                canvas.width / 2, canvas.height / 2, canvas.width / 2
+            );
+            gradient.addColorStop(0, '#0a0a2a');
+            gradient.addColorStop(0.5, '#000814');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 创建星星
+            for (let i = 0; i < config.starsCount; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 1.5;
+                const opacity = Math.random() * 0.8 + 0.2;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                ctx.fill();
+                
+                // 添加发光效果
+                if (Math.random() > 0.95) {
+                    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 4);
+                    glow.addColorStop(0, `rgba(255, 255, 255, ${opacity})`);
+                    glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = glow;
+                    ctx.fillRect(x - radius * 4, y - radius * 4, radius * 8, radius * 8);
+                }
+            }
+            
+            // 添加星云效果
+            for (let i = 0; i < 3; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 200 + 100;
+                const color = config.galaxyColors[Math.floor(Math.random() * config.galaxyColors.length)];
+                
+                const nebula = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                nebula.addColorStop(0, color + '20');
+                nebula.addColorStop(0.5, color + '10');
+                nebula.addColorStop(1, 'transparent');
+                ctx.fillStyle = nebula;
+                ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+            }
+        }
+
         // 配置
         const config = {
             radius: 250,
@@ -872,28 +980,60 @@
             return texture;
         }
         
-        // 加载图片
+        // 加载图片 - 优化版本
         function loadImages() {
             const loader = new THREE.TextureLoader();
             let loadedImages = 0;
+            const imagePromises = [];
             
-            demoImages.forEach((url, index) => {
-                loader.load(
-                    url,
-                    (texture) => {
-                        createPhoto(texture, index, config.photoCount);
-                        loadedImages++;
-                        updateLoadingProgress(loadedImages);
-                    },
-                    undefined,
-                    (error) => {
-                        console.warn(`无法加载 ${url}，使用占位图`);
-                        createPlaceholderPhoto(index);
-                        loadedImages++;
-                        updateLoadingProgress(loadedImages);
-                    }
-                );
-            });
+            // 分批加载图片，避免同时加载过多
+            const batchSize = 8;
+            
+            for (let i = 0; i < demoImages.length; i += batchSize) {
+                const batch = demoImages.slice(i, i + batchSize);
+                
+                setTimeout(() => {
+                    batch.forEach((url, batchIndex) => {
+                        const index = i + batchIndex;
+                        
+                        // 预检查图片是否存在
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        
+                        img.onload = () => {
+                            loader.load(
+                                url,
+                                (texture) => {
+                                    // 优化纹理设置
+                                    texture.minFilter = THREE.LinearFilter;
+                                    texture.magFilter = THREE.LinearFilter;
+                                    texture.generateMipmaps = false;
+                                    
+                                    createPhoto(texture, index, config.photoCount);
+                                    loadedImages++;
+                                    updateLoadingProgress(loadedImages);
+                                },
+                                undefined,
+                                (error) => {
+                                    console.warn(`无法加载 ${url}，使用占位图`);
+                                    createPlaceholderPhoto(index);
+                                    loadedImages++;
+                                    updateLoadingProgress(loadedImages);
+                                }
+                            );
+                        };
+                        
+                        img.onerror = () => {
+                            console.warn(`图片不存在: ${url}，使用占位图`);
+                            createPlaceholderPhoto(index);
+                            loadedImages++;
+                            updateLoadingProgress(loadedImages);
+                        };
+                        
+                        img.src = url;
+                    });
+                }, i / batchSize * 100); // 延迟加载
+            }
             
             document.getElementById('photo-count').textContent = config.photoCount;
         }
