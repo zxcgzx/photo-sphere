@@ -495,10 +495,325 @@
                 font-size: 28px;
             }
         }
+        
+        /* 密码验证界面 */
+        #password-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a1a3a 50%, #2a1a4a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            animation: fadeIn 1s ease-in-out;
+        }
+        
+        .password-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .password-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .password-header h2 {
+            font-size: 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.8);
+        }
+        
+        .password-header p {
+            color: #e0e7ff;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .password-questions {
+            margin-bottom: 30px;
+        }
+        
+        .question-item {
+            margin-bottom: 25px;
+        }
+        
+        .question-item label {
+            display: block;
+            color: #e0e7ff;
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .question-item select,
+        .question-item input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .question-item select:focus,
+        .question-item input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .question-item select option {
+            background: #1a1a3a;
+            color: white;
+        }
+        
+        .word-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .word-btn {
+            padding: 12px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e7ff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .word-btn:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .word-btn.selected {
+            border-color: #f093fb;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .enter-button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .enter-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        }
+        
+        .enter-button:active {
+            transform: translateY(-1px);
+        }
+        
+        .enter-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .hint-text {
+            text-align: center;
+            color: #9bb5ff;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        /* 爱心动画 */
+        .love-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .floating-heart {
+            position: absolute;
+            font-size: 20px;
+            animation: floatHeart 6s ease-in-out infinite;
+            opacity: 0.7;
+        }
+        
+        .floating-heart:nth-child(1) {
+            left: 20%;
+            animation-delay: 0s;
+        }
+        
+        .floating-heart:nth-child(2) {
+            left: 50%;
+            animation-delay: 2s;
+        }
+        
+        .floating-heart:nth-child(3) {
+            left: 80%;
+            animation-delay: 4s;
+        }
+        
+        @keyframes floatHeart {
+            0%, 100% {
+                transform: translateY(100px) rotate(0deg);
+                opacity: 0;
+            }
+            10%, 90% {
+                opacity: 0.7;
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* 密码界面移动端适配 */
+        @media (max-width: 768px) {
+            .password-container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            
+            .password-header h2 {
+                font-size: 24px;
+            }
+            
+            .password-header p {
+                font-size: 14px;
+            }
+            
+            .question-item label {
+                font-size: 14px;
+            }
+            
+            .word-options {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            
+            .word-btn {
+                padding: 10px;
+                font-size: 13px;
+            }
+            
+            .enter-button {
+                font-size: 16px;
+                padding: 12px;
+            }
+        }
     </style>
 </head>
 <body>
     <canvas id="stars-canvas"></canvas>
+    
+    <!-- 密码验证界面 -->
+    <div id="password-screen">
+        <div class="password-container">
+            <div class="password-header">
+                <h2>🔐 进入我们的小宇宙</h2>
+                <p>只有懂我们故事的人才能进入哦 💕</p>
+            </div>
+            
+            <div class="password-questions">
+                <div class="question-item">
+                    <label>🌟 我们第一次见面是在哪个月份？</label>
+                    <select id="month-select">
+                        <option value="">选择月份...</option>
+                        <option value="1">一月</option>
+                        <option value="2">二月</option>
+                        <option value="3">三月</option>
+                        <option value="4">四月</option>
+                        <option value="5">五月</option>
+                        <option value="6">六月</option>
+                        <option value="7">七月</option>
+                        <option value="8">八月</option>
+                        <option value="9">九月</option>
+                        <option value="10">十月</option>
+                        <option value="11">十一月</option>
+                        <option value="12">十二月</option>
+                    </select>
+                </div>
+                
+                <div class="question-item">
+                    <label>💝 我们的昵称是什么？</label>
+                    <input type="text" id="nickname-input" placeholder="输入我们的特殊昵称..." maxlength="10">
+                </div>
+                
+                <div class="question-item">
+                    <label>🎵 完成这句话："你是我的..."</label>
+                    <div class="word-options">
+                        <button class="word-btn" data-word="星星">星星</button>
+                        <button class="word-btn" data-word="月亮">月亮</button>
+                        <button class="word-btn" data-word="太阳">太阳</button>
+                        <button class="word-btn" data-word="宇宙">宇宙</button>
+                    </div>
+                    <input type="hidden" id="word-selected" value="">
+                </div>
+            </div>
+            
+            <div class="password-actions">
+                <button id="enter-btn" class="enter-button">
+                    <span>✨ 进入我们的小宇宙 ✨</span>
+                </button>
+                <div class="hint-text">
+                    💡 提示：答案都在我们的回忆里～
+                </div>
+            </div>
+            
+            <div class="love-animation">
+                <div class="floating-heart">💖</div>
+                <div class="floating-heart">💕</div>
+                <div class="floating-heart">💝</div>
+            </div>
+        </div>
+    </div>
     
     <div id="loading-screen">
         <div class="loading-animation">
@@ -642,6 +957,160 @@
                 ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
             }
         }
+
+        // 密码配置 - 你可以修改这些答案
+        const passwordConfig = {
+            correctMonth: "1",        // 第一次见面的月份 (1-12)
+            correctNickname: "宝贝",  // 你们的昵称
+            correctWord: "宇宙"       // "你是我的..."的答案
+        };
+        
+        // 密码验证逻辑
+        function initPasswordScreen() {
+            const wordBtns = document.querySelectorAll('.word-btn');
+            const enterBtn = document.getElementById('enter-btn');
+            const monthSelect = document.getElementById('month-select');
+            const nicknameInput = document.getElementById('nickname-input');
+            const wordSelected = document.getElementById('word-selected');
+            
+            // 单词选择按钮
+            wordBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    wordBtns.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    wordSelected.value = btn.dataset.word;
+                    checkFormComplete();
+                });
+            });
+            
+            // 检查表单完整性
+            function checkFormComplete() {
+                const month = monthSelect.value;
+                const nickname = nicknameInput.value.trim();
+                const word = wordSelected.value;
+                
+                if (month && nickname && word) {
+                    enterBtn.disabled = false;
+                    enterBtn.style.opacity = '1';
+                } else {
+                    enterBtn.disabled = true;
+                    enterBtn.style.opacity = '0.5';
+                }
+            }
+            
+            // 监听输入变化
+            monthSelect.addEventListener('change', checkFormComplete);
+            nicknameInput.addEventListener('input', checkFormComplete);
+            
+            // 验证密码
+            enterBtn.addEventListener('click', () => {
+                const month = monthSelect.value;
+                const nickname = nicknameInput.value.trim();
+                const word = wordSelected.value;
+                
+                if (month === passwordConfig.correctMonth && 
+                    nickname === passwordConfig.correctNickname && 
+                    word === passwordConfig.correctWord) {
+                    
+                    // 密码正确
+                    showSuccessAnimation();
+                    setTimeout(() => {
+                        document.getElementById('password-screen').style.display = 'none';
+                        init(); // 初始化主程序
+                    }, 2000);
+                    
+                } else {
+                    // 密码错误
+                    showErrorAnimation();
+                }
+            });
+            
+            // 回车键提交
+            nicknameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !enterBtn.disabled) {
+                    enterBtn.click();
+                }
+            });
+        }
+        
+        // 成功动画
+        function showSuccessAnimation() {
+            const container = document.querySelector('.password-container');
+            const enterBtn = document.getElementById('enter-btn');
+            
+            enterBtn.innerHTML = '<span>🎉 欢迎进入我们的小宇宙！ 🎉</span>';
+            enterBtn.style.background = 'linear-gradient(135deg, #00ff88, #00ffff)';
+            
+            // 创建成功特效
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    createSuccessParticle(container);
+                }, i * 100);
+            }
+            
+            container.style.transform = 'scale(1.05)';
+            container.style.boxShadow = '0 20px 60px rgba(0, 255, 136, 0.5)';
+        }
+        
+        // 错误动画
+        function showErrorAnimation() {
+            const container = document.querySelector('.password-container');
+            const enterBtn = document.getElementById('enter-btn');
+            
+            enterBtn.innerHTML = '<span>❌ 答案不对哦，再想想～ ❌</span>';
+            enterBtn.style.background = 'linear-gradient(135deg, #ff6b6b, #ff8e8e)';
+            
+            // 抖动动画
+            container.style.animation = 'shake 0.5s ease-in-out';
+            
+            setTimeout(() => {
+                enterBtn.innerHTML = '<span>✨ 进入我们的小宇宙 ✨</span>';
+                enterBtn.style.background = 'linear-gradient(135deg, #667eea, #764ba2, #f093fb)';
+                container.style.animation = '';
+            }, 2000);
+        }
+        
+        // 创建成功粒子效果
+        function createSuccessParticle(container) {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                background: radial-gradient(circle, #00ff88, #00ffff);
+                border-radius: 50%;
+                pointer-events: none;
+                left: ${Math.random() * 100}%;
+                top: ${Math.random() * 100}%;
+                animation: particleFloat 2s ease-out forwards;
+            `;
+            
+            container.appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 2000);
+        }
+        
+        // 添加抖动动画CSS
+        const shakeStyle = document.createElement('style');
+        shakeStyle.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+            
+            @keyframes particleFloat {
+                0% { 
+                    opacity: 1; 
+                    transform: translateY(0) scale(1); 
+                }
+                100% { 
+                    opacity: 0; 
+                    transform: translateY(-100px) scale(0.5); 
+                }
+            }
+        `;
+        document.head.appendChild(shakeStyle);
 
         // 配置
         const config = {
@@ -1669,7 +2138,9 @@
         
         // 启动
         window.onload = function() {
-            init();
+            // 初始化密码界面
+            initPasswordScreen();
+            // 不自动初始化主程序，等密码验证通过后再初始化
         };
     </script>
 </body>
