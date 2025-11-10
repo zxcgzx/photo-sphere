@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>我们的宇宙 · 时光星轨</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700&family=ZCOOL+KuaiLe&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Noto Serif SC', serif;
+            background: #000;
+            color: #fff;
+            touch-action: none;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ffffff" opacity="0.3"/><circle cx="12" cy="12" r="6" fill="%23ffffff" opacity="0.6"/><circle cx="12" cy="12" r="3" fill="%23ffffff"/></svg>'), auto;
+        }
+        
+        /* 星空画布 */
+        #stars-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+        
+        /* 流星层 */
+        #meteor-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .meteor {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #ffffff, #9bb5ff, transparent);
+            border-radius: 50%;
+            animation: meteorFall 3s linear infinite;
+            opacity: 0;
+        }
+        
+        .meteor::before {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 1px;
+            background: linear-gradient(to right, #ffffff, transparent);
+            top: 0;
+            left: 0;
+            transform: translateX(-100px);
+        }
+        
+        @keyframes meteorFall {
+            0% {
+                transform: translateX(-100px) translateY(-100px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(calc(100vw + 100px)) translateY(calc(100vh + 100px));
+                opacity: 0;
+            }
+        }
+        
+        #canvas-container {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+        
+        /* 标题区域 - 诗意化 */
+        #title-container {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 50;
+            pointer-events: none;
+            animation: titleFloat 6s ease-in-out infinite;
+        }
+        
+        @keyframes titleFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0px); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+        
+        #main-title {
+            font-size: 36px;
+            font-weight: 300;
+            letter-spacing: 8px;
+            background: linear-gradient(135deg, #ffffff 0%, #9bb5ff 25%, #d6b3ff 50%, #ffb3d9 75%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            text-shadow: 0 0 40px rgba(155, 181, 255, 0.8);
+            filter: drop-shadow(0 0 30px rgba(214, 179, 255, 0.6));
+            animation: titleGlow 4s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            0% { filter: drop-shadow(0 0 30px rgba(214, 179, 255, 0.6)); }
+            100% { filter: drop-shadow(0 0 50px rgba(155, 181, 255, 0.9)); }
+        }
+        
+        .emoji-decoration {
+            font-size: 28px;
+            animation: emojiPulse 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+        }
+        
+        @keyframes emojiPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(10deg); }
+        }
+        
+        #subtitle {
+            font-size: 14px;
+            color: #d6b3ff;
+            margin-top: 15px;
+            opacity: 0.8;
+            font-weight: 300;
+            letter-spacing: 2px;
+            animation: subtitleFade 8s ease-in-out infinite;
+        }
+        
+        @keyframes subtitleFade {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 0.9; }
+        }
+        
+        /* 控制面板 - 玻璃拟态 */
+        #control-panel {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            border-radius: 30px;
+            box-shadow: 0 12px 40px rgba(155, 181, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            max-width: 90%;
+            z-index: 100;
+            animation: panelFloat 5s ease-in-out infinite;
+        }
+        
+        @keyframes panelFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0px); }
+            50% { transform: translateX(-50%) translateY(-5px); }
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 12px 24px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(155, 181, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+        
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.7s;
+        }
+        
+        .control-btn:hover::before {
+            left: 100%;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 30px rgba(155, 181, 255, 0.4);
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(214, 179, 255, 0.5);
+        }
+        
+        .control-btn:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+        
+        .control-btn.active {
+            background: linear-gradient(135deg, rgba(155, 181, 255, 0.4), rgba(214, 179, 255, 0.4));
+            border-color: rgba(155, 181, 255, 0.6);
+            box-shadow: 0 0 30px rgba(155, 181, 255, 0.6);
+        }
+        
+        /* 统计面板 - 时光印记 */
+        #stats-panel {
+            position: fixed;
+            top: 120px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 25px;
+            font-size: 15px;
+            box-shadow: 0 8px 32px rgba(155, 181, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: none;
+            z-index: 90;
+            animation: statsFade 0.8s ease-out;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        @keyframes statsFade {
+            0% { opacity: 0; transform: translateY(-20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 12px 0;
+            color: #e0e7ff;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            transform: translateX(5px);
+            color: #ffffff;
+        }
+        
+        .stat-emoji {
+            font-size: 20px;
+            animation: statEmojiBounce 2s ease-in-out infinite;
+        }
+        
+        @keyframes statEmojiBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        /* 照片查看器 - 时光胶囊 */
+        #photo-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.95) 0%, rgba(10, 10, 42, 0.98) 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            flex-direction: column;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+        }
+        
+        #viewer-close {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        #viewer-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+        
+        #viewer-image {
+            max-width: 85%;
+            max-height: 60%;
+            object-fit: contain;
+            border-radius: 25px;
+            box-shadow: 0 25px 80px rgba(155, 181, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: photoFloat 4s ease-in-out infinite;
+        }
+        
+        @keyframes photoFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-10px) scale(1.01); }
+        }
+        
+        #viewer-info {
+            margin-top: 30px;
+            text-align: center;
+            color: white;
+            max-width: 600px;
+            animation: infoFade 0.8s ease-out;
+        }
+        
+        @keyframes infoFade {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        #viewer-date {
+            color: #9bb5ff;
+            font-size: 16px;
+            margin: 15px 0;
+            text-shadow: 0 0 15px rgba(155, 181, 255, 0.5);
+            font-family: 'Noto Serif SC', serif;
+            letter-spacing: 1px;
+        }
+        
+        #viewer-caption {
+            font-size: 18px;
+            line-height: 1.8;
+            opacity: 0.9;
+            font-weight: 300;
+            font-style: italic;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 照片详情卡片 - 时光印记 */
+        .photo-detail-card {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 20px;
+            color: white;
+            font-size: 14px;
+            max-width: 250px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 40px rgba(155, 181, 255, 0.2);
+            z-index: 80;
+        }
+        
+        .photo-detail-card.show {
+            opacity: 1;
+            transform: translateY(-10px);
+        }
+        
+        .photo-detail-card h4 {
+            margin-bottom: 10px;
+            color: #d6b3ff;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .photo-detail-card p {
+            line-height: 1.6;
+            color: #e0e7ff;
+            font-size: 13px;
+        }
+        
+        /* 加载界面 - 时光之门 */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #0a0a2a 0%, #000814 50%, #000000 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .loading-animation {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            margin-bottom: 40px;
+        }
+        
+        .loading-orbit {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(155, 181, 255, 0.3);
+            border-radius: 50%;
+            animation: orbitRotate 4s linear infinite;
+        }
+        
+        .loading-orbit:nth-child(2) {
+            width: 80%;
+            height: 80%;
+            top: 10%;
+            left: 10%;
+            animation-duration: 3s;
+            animation-direction: reverse;
+        }
+        
+        .loading-orbit:nth-child(3) {
+            width: 60%;
+            height: 60%;
+            top: 20%;
+            left: 20%;
+            animation-duration: 2s;
+        }
+        
+        .loading-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ffffff, #9bb5ff);
+            border-radius: 50%;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 15px rgba(155, 181, 255, 0.8);
+            animation: particleGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes orbitRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes particleGlow {
+            0% { box-shadow: 0 0 15px rgba(155, 181, 255, 0.8); }
+            100% { box-shadow: 0 0 25px rgba(155, 181, 255, 1); }
+        }
+        
+        #loading-text {
+            color: #e0e7ff;
+            font-size: 18px;
+            text-shadow: 0 0 20px rgba(155, 181, 255, 0.5);
+            letter-spacing: 2px;
+            font-weight: 300;
+            margin-bottom: 20px;
+        }
+        
+        .loading-quote {
+            color: #d6b3ff;
+            font-size: 14px;
+            font-style: italic;
+            opacity: 0.8;
+            max-width: 400px;
+            text-align: center;
+            line-height: 1.6;
+            margin-top: 20px;
+        }
+        
+        #loading-progress {
+            width: 300px;
+            height: 4px;
+            background-color: rgba(155, 181, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 30px;
+        }
+        
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #9bb5ff, #d6b3ff, #ffb3d9);
+            transition: width 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+            border-radius: 2px;
+            box-shadow: 0 0 20px rgba(155, 181, 255, 0.6);
+        }
+        
+        /* 手势提示 - 诗意化 */
+        #gesture-hint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(25px);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 25px;
+            font-size: 18px;
+            z-index: 150;
+            display: none;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 50px rgba(155, 181, 255, 0.3);
+            animation: hintPulse 3s ease-in-out infinite;
+            font-family: 'Noto Serif SC', serif;
+            line-height: 1.6;
+        }
+        
+        @keyframes hintPulse {
+            0%, 100% { 
+                opacity: 0.9;
+                box-shadow: 0 15px 50px rgba(155, 181, 255, 0.3);
+            }
+            50% { 
+                opacity: 1;
+                box-shadow: 0 15px 60px rgba(155, 181, 255, 0.5);
+            }
+        }
+        
+        .hint-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+            animation: iconFloat 2s ease-in-out infinite;
+        }
+        
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* 心跳动画背景 */
+        .heartbeat-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+        
+        .heartbeat-bg.active {
+            opacity: 0.3;
+        }
+        
+        .heartbeat-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border: 2px solid rgba(255, 179, 217, 0.5);
+            border-radius: 50%;
+            animation: heartbeat 2s ease-in-out infinite;
+        }
+        
+        .heartbeat-pulse:nth-child(2) {
+            animation-delay: 0.5s;
+            width: 150px;
+            height: 150px;
+        }
+        
+        .heartbeat-pulse:nth-child(3) {
+            animation-delay: 1s;
+            width: 200px;
+            height: 200px;
+        }
+        
+        @keyframes heartbeat {
+            0% { 
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 1;
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(3);
+                opacity: 0;
+            }
+        }
+        
+        /* 照片光环效果 */
+        .photo-aura {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border: 2px solid rgba(155, 181, 255, 0.3);
+            border-radius: 50%;
+            animation: auraRotate 10s linear infinite;
+            pointer-events: none;
+        }
+        
+        .photo-aura::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border: 1px solid rgba(214, 179, 255, 0.2);
+            border-radius: 50%;
+            animation: auraPulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes auraRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes auraPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+        
+        /* 粒子轨迹 */
+        .particle-trail {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, #ffffff, #9bb5ff);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: trailFade 2s ease-out forwards;
+        }
+        
+        @keyframes trailFade {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            #main-title {
+                font-size: 24px;
+                letter-spacing: 4px;
+            }
+            
+            .emoji-decoration {
+                font-size: 20px;
+            }
+            
+            #subtitle {
+                font-size: 12px;
+            }
+            
+            #control-panel {
+                bottom: 20px;
+                padding: 15px;
+                gap: 8px;
+            }
+            
+            .control-btn {
+                padding: 10px 16px;
+                font-size: 12px;
+                min-width: auto;
+            }
+            
+            #stats-panel {
+                top: 100px;
+                left: 20px;
+                padding: 15px;
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #main-title {
+                font-size: 18px;
+                letter-spacing: 2px;
+            }
+            
+            .control-btn {
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="stars-canvas"></canvas>
+    <div id="meteor-layer"></div>
+    
+    <!-- 心跳背景 -->
+    <div class="heartbeat-bg" id="heartbeat-bg">
+        <div class="heartbeat-pulse"></div>
+        <div class="heartbeat-pulse"></div>
+        <div class="heartbeat-pulse"></div>
+    </div>
+    
+    <div id="canvas-container"></div>
+    
+    <div id="title-container">
+        <h1 id="main-title">
+            <span class="emoji-decoration">✨</span>
+            <span>时光星轨</span>
+            <span class="emoji-decoration">🌟</span>
+        </h1>
+        <div id="subtitle">每一颗星辰，都是我们的回忆</div>
+    </div>
+    
+    <div id="stats-panel">
+        <div class="stat-item">
+            <span class="stat-emoji">💫</span>
+            <span>时光流转 <span class="stat-value" id="days-count">0</span> 天</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-emoji">🌟</span>
+            <span>星辰记忆 <span class="stat-value" id="photo-count">0</span> 颗</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-emoji">💕</span>
+            <span>心动指数 <span class="stat-value" id="sweet-index">99</span>%</span>
+        </div>
+    </div>
+    
+    <div id="control-panel">
+        <button class="control-btn" id="btn-rotate">
+            <span>🌙</span>
+            <span>星轨流转</span>
+        </button>
+        <button class="control-btn" id="btn-stats">
+            <span>📜</span>
+            <span>时光卷轴</span>
+        </button>
+        <button class="control-btn" id="btn-random">
+            <span>🎲</span>
+            <span>随机回忆</span>
+        </button>
+        <button class="control-btn" id="btn-mood">
+            <span>🎨</span>
+            <span>星云变幻</span>
+        </button>
+        <button class="control-btn" id="btn-light">
+            <span>💫</span>
+            <span>星光闪烁</span>
+        </button>
+        <button class="control-btn" id="btn-heartbeat">
+            <span>💕</span>
+            <span>心跳同步</span>
+        </button>
+        <button class="control-btn" id="btn-upload">
+            <span>📸</span>
+            <span>捕捉时光</span>
+        </button>
+    </div>
+    
+    <div id="photo-viewer">
+        <div id="viewer-close">×</div>
+        <img id="viewer-image" src="" alt="">
+        <div id="viewer-info">
+            <div id="viewer-date"></div>
+            <div id="viewer-caption"></div>
+        </div>
+    </div>
+    
+    <div id="gesture-hint">
+        <div class="hint-icon">🌌</div>
+        <div>轻触星辰，唤醒回忆<br>双指轻舞，遨游星海</div>
+    </div>
+    
+    <div id="loading-screen">
+        <div class="loading-animation">
+            <div class="loading-orbit">
+                <div class="loading-particle"></div>
+            </div>
+            <div class="loading-orbit"></div>
+            <div class="loading-orbit"></div>
+        </div>
+        <p id="loading-text">正在编织我们的宇宙...</p>
+        <div id="loading-progress">
+            <div id="progress-bar"></div>
+        </div>
+        <div class="loading-quote" id="loading-quote">"在时间的无垠里，我们相遇"</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    
+    <script>
+        // 配置 - 浪漫参数
+        const config = {
+            radius: 280,
+            particleCount: 800,
+            imageSize: 60,
+            autoRotateSpeed: 0.15,
+            startDate: new Date('2024-01-01'), // 纪念日
+            photoCount: 53,
+            emojis: ['💫', '⭐', '✨', '🌟', '🌠', '🌌', '🌙', '☄️', '🚀', '🛸', '🌍', '🪐', '💖', '💕', '💝', '💘', '🌸', '🌺', '🌷', '🌹'],
+            moods: [
+                { name: '深空蓝', colors: ['#000428', '#004e92'], description: '深邃如你的眼眸' },
+                { name: '星云紫', colors: ['#1a1a2e', '#16213e', '#0f3460', '#533483'], description: '梦幻如你的笑容' },
+                { name: '极光绿', colors: ['#0f0c29', '#302b63', '#24243e', '#0f9b0f'], description: '生机如你的陪伴' },
+                { name: '玫瑰金', colors: ['#200122', '#6f0000', '#dc004e', '#ff6b9d'], description: '温暖如你的拥抱' },
+                { name: '晨曦粉', colors: ['#ffafbd', '#ffc3a0', '#ff8a80', '#ffab91'], description: '温柔如你的细语' }
+            ],
+            starsCount: 3000,
+            galaxyColors: ['#9bb5ff', '#9d9dff', '#ffcc99', '#ff9999', '#ffb3d9', '#d6b3ff'],
+            captions: [
+                "初见时，星辰初绽 ✨",
+                "你的眼眸，是宇宙最亮的星 👀",
+                "第一次牵手，触电般的感觉 ⚡",
+                "一起看日落，时光静止 🌅",
+                "你做的早餐，是爱的味道 🍳",
+                "雨天的伞下，是我们的小世界 ☔",
+                "深夜的电话，聊到黎明 📱",
+                "第一次旅行，探索未知的世界 ✈️",
+                "生日惊喜，你比蛋糕还甜 🎂",
+                "情人节的玫瑰，代表我的心 🌹",
+                "公园散步，落叶见证我们的脚步 🍂",
+                "海边的誓言，被海浪听见 🌊",
+                "一起做饭，厨房里的舞蹈 👨‍🍳",
+                "游乐园的笑声，是最美的音乐 🎠",
+                "看展览，艺术因你而生动 🎨",
+                "山顶的星空，不及你眼中的光芒 🏔️",
+                "一起学习，知识因你而有趣 📚",
+                "宅在家的周末，是最幸福的时光 🏠",
+                "深夜看星星，每一颗都是你的名字 ⭐",
+                "早安的吻，开启美好的一天 💋",
+                "一起运动，汗水也甜蜜 🏃",
+                "逛超市，平凡的日子因你而特别 🛒",
+                "等你下班，是最温柔的守候 ⏰",
+                "一起看演唱会，歌声里有我们的故事 🎤",
+                "喝奶茶的午后，甜在舌尖暖在心 🧋",
+                "拍照的你，是我最美的风景 📷",
+                "牵手走过的街，每一步都是诗 🚶",
+                "一起看日出，新的一天因你而美好 🌄",
+                "雪天的温暖，来自你的拥抱 ❄️",
+                "你的笑容，是我最大的幸福 😊",
+                "樱花树下，花瓣如雪般飘落 🌸",
+                "图书馆的午后，书香与你的爱 📖",
+                "第一次做蛋糕，甜到心里 🍰",
+                "看烟花，像流星划过夜空 🎆",
+                "摩天轮的最高点，我们的爱也到达顶点 🎡",
+                "吃火锅，辣在嘴里暖在心里 🍲",
+                "唱K的夜晚，你是我的唯一听众 🎤",
+                "看日出，新的一天因你而美好 🌅",
+                "逛夜市，人间烟火因你而温暖 🏮",
+                "一起画画，色彩因你而鲜艳 🎨",
+                "做手工，用心编织我们的未来 ✂️",
+                "看相册回忆，每一张都是珍宝 📷",
+                "一起种花，爱情如花般绽放 🌱",
+                "看月亮，它见证了我们的爱情 🌙",
+                "吃冰淇淋，甜蜜在舌尖融化 🍦",
+                "放风筝，让梦想飞得更高 🪁",
+                "骑单车，风吹过的都是快乐 🚴",
+                "看展览，艺术因你而生动 🖼️",
+                "写情书，字字句句都是真心 💌",
+                "一起做瑜伽，身心都与你同步 🧘",
+                "看流星许愿，愿与你永远在一起 💫",
+                "许下永恒的愿望，爱你到永远 🙏",
+                "我们的宇宙，因爱而永恒 💑",
+                "时光流转，爱你如初 ⏳"
+            ]
+        };
+        
+        // 全局变量
+        let scene, camera, renderer;
+        let photoGroup, particleGroup, orbitGroup, auraGroup;
+        let photos = [];
+        let particles = [];
+        let auras = [];
+        let lights = [];
+        let autoRotate = false;
+        let currentMood = 0;
+        let mouseX = 0, mouseY = 0;
+        let targetRotationX = 0, targetRotationY = 0;
+        let isHeartbeatMode = false;
+        let meteorInterval;
+        
+        // 初始化星空背景
+        function createStarField() {
+            const canvas = document.getElementById('stars-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // 创建深邃背景
+            const gradient = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, 0,
+                canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height)
+            );
+            gradient.addColorStop(0, '#0a0a2a');
+            gradient.addColorStop(0.3, '#000814');
+            gradient.addColorStop(0.7, '#000000');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 创建星星
+            for (let i = 0; i < config.starsCount; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 2;
+                const opacity = Math.random() * 0.8 + 0.2;
+                const twinkleSpeed = Math.random() * 0.05 + 0.01;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                ctx.fill();
+                
+                // 添加星光效果
+                if (Math.random() > 0.97) {
+                    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 6);
+                    glow.addColorStop(0, `rgba(155, 181, 255, ${opacity * 0.8})`);
+                    glow.addColorStop(0.5, `rgba(155, 181, 255, ${opacity * 0.4})`);
+                    glow.addColorStop(1, 'transparent');
+                    ctx.fillStyle = glow;
+                    ctx.fillRect(x - radius * 6, y - radius * 6, radius * 12, radius * 12);
+                }
+                
+                // 十字星芒
+                if (Math.random() > 0.995) {
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.6})`;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(x - radius * 8, y);
+                    ctx.lineTo(x + radius * 8, y);
+                    ctx.moveTo(x, y - radius * 8);
+                    ctx.lineTo(x, y + radius * 8);
+                    ctx.stroke();
+                }
+            }
+            
+            // 添加星云
+            for (let i = 0; i < 5; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 300 + 150;
+                const color = config.galaxyColors[Math.floor(Math.random() * config.galaxyColors.length)];
+                
+                const nebula = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                nebula.addColorStop(0, color + '30');
+                nebula.addColorStop(0.5, color + '15');
+                nebula.addColorStop(1, 'transparent');
+                ctx.fillStyle = nebula;
+                ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+            }
+        }
+        
+        // 创建流星
+        function createMeteor() {
+            const meteorLayer = document.getElementById('meteor-layer');
+            const meteor = document.createElement('div');
+            meteor.className = 'meteor';
+            
+            const startX = Math.random() * window.innerWidth * 0.3;
+            const startY = Math.random() * window.innerHeight * 0.3;
+            
+            meteor.style.left = startX + 'px';
+            meteor.style.top = startY + 'px';
+            meteor.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            meteor.style.animationDelay = Math.random() * 2 + 's';
+            
+            meteorLayer.appendChild(meteor);
+            
+            setTimeout(() => {
+                if (meteor.parentNode) {
+                    meteor.parentNode.removeChild(meteor);
+                }
+            }, 5000);
+        }
+        
+        // 初始化Three.js场景
+        function initScene() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.0008);
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.z = 600;
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setClearColor(0x000000, 0);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // 创建照片组
+            photoGroup = new THREE.Group();
+            scene.add(photoGroup);
+            
+            // 创建粒子组
+            particleGroup = new THREE.Group();
+            scene.add(particleGroup);
+            
+            // 创建光环组
+            auraGroup = new THREE.Group();
+            scene.add(auraGroup);
+            
+            // 创建轨道组
+            orbitGroup = new THREE.Group();
+            scene.add(orbitGroup);
+            
+            // 添加环境光
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+            scene.add(ambientLight);
+            
+            // 添加点光源
+            const pointLight = new THREE.PointLight(0xffffff, 1, 1000);
+            pointLight.position.set(0, 0, 0);
+            scene.add(pointLight);
+            lights.push(pointLight);
+            
+            // 创建照片球体
+            createPhotoSphere();
+            
+            // 创建粒子系统
+            createParticleSystem();
+            
+            // 创建轨道环
+            createOrbitRings();
+            
+            // 开始渲染循环
+            animate();
+        }
+        
+        // 创建照片球体
+        function createPhotoSphere() {
+            const geometry = new THREE.SphereGeometry(config.radius, 32, 32);
+            const positions = geometry.attributes.position.array;
+            
+            // 选择照片位置
+            const photoIndices = [];
+            for (let i = 0; i < config.photoCount; i++) {
+                photoIndices.push(Math.floor(Math.random() * (positions.length / 3)));
+            }
+            
+            // 创建照片
+            photoIndices.forEach((index, i) => {
+                const x = positions[index * 3];
+                const y = positions[index * 3 + 1];
+                const z = positions[index * 3 + 2];
+                
+                createPhoto(x, y, z, i);
+            });
+        }
+        
+        // 创建单张照片
+        function createPhoto(x, y, z, index) {
+            // 创建照片材质
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            
+            // 绘制照片背景
+            const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(0.7, '#f0f0f0');
+            gradient.addColorStop(1, '#cccccc');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 256, 256);
+            
+            // 绘制心形装饰
+            ctx.fillStyle = `rgba(155, 181, 255, ${0.3 + Math.random() * 0.4})`;
+            drawHeart(ctx, 128, 128, 40);
+            
+            // 添加文字
+            ctx.fillStyle = '#9bb5ff';
+            ctx.font = '24px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(config.emojis[index % config.emojis.length], 128, 140);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.MeshBasicMaterial({ 
+                map: texture, 
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            // 创建照片网格
+            const geometry = new THREE.PlaneGeometry(config.imageSize, config.imageSize);
+            const photo = new THREE.Mesh(geometry, material);
+            photo.position.set(x, y, z);
+            photo.lookAt(0, 0, 0);
+            
+            // 添加用户数据
+            photo.userData = {
+                index: index,
+                originalPosition: { x, y, z },
+                caption: config.captions[index % config.captions.length],
+                date: new Date(config.startDate.getTime() + index * 24 * 60 * 60 * 1000),
+                isHovered: false
+            };
+            
+            photoGroup.add(photo);
+            photos.push(photo);
+            
+            // 创建光环
+            createAura(x, y, z, index);
+        }
+        
+        // 绘制心形
+        function drawHeart(ctx, x, y, size) {
+            ctx.beginPath();
+            ctx.moveTo(x, y + size / 4);
+            ctx.bezierCurveTo(x, y - size / 4, x - size / 2, y - size / 4, x - size / 2, y);
+            ctx.bezierCurveTo(x - size / 2, y + size / 4, x, y + size / 2, x, y + size);
+            ctx.bezierCurveTo(x, y + size / 2, x + size / 2, y + size / 4, x + size / 2, y);
+            ctx.bezierCurveTo(x + size / 2, y - size / 4, x, y - size / 4, x, y + size / 4);
+            ctx.fill();
+        }
+        
+        // 创建光环
+        function createAura(x, y, z, index) {
+            const geometry = new THREE.RingGeometry(config.imageSize * 0.6, config.imageSize * 0.8, 32);
+            const material = new THREE.MeshBasicMaterial({ 
+                color: new THREE.Color().setHSL((index * 0.1) % 1, 0.7, 0.6),
+                transparent: true,
+                opacity: 0.3,
+                side: THREE.DoubleSide
+            });
+            
+            const aura = new THREE.Mesh(geometry, material);
+            aura.position.set(x, y, z);
+            aura.lookAt(0, 0, 0);
+            aura.rotateZ(Math.PI / 2);
+            
+            auraGroup.add(aura);
+            auras.push(aura);
+        }
+        
+        // 创建粒子系统
+        function createParticleSystem() {
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(config.particleCount * 3);
+            const colors = new Float32Array(config.particleCount * 3);
+            const sizes = new Float32Array(config.particleCount);
+            
+            for (let i = 0; i < config.particleCount; i++) {
+                const i3 = i * 3;
+                const radius = config.radius + Math.random() * 200 - 100;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                
+                positions[i3] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i3 + 2] = radius * Math.cos(phi);
+                
+                const color = new THREE.Color().setHSL(Math.random(), 0.8, 0.7);
+                colors[i3] = color.r;
+                colors[i3 + 1] = color.g;
+                colors[i3 + 2] = color.b;
+                
+                sizes[i] = Math.random() * 3 + 1;
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            
+            const material = new THREE.PointsMaterial({
+                size: 2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+            
+            const particleSystem = new THREE.Points(geometry, material);
+            particleGroup.add(particleSystem);
+        }
+        
+        // 创建轨道环
+        function createOrbitRings() {
+            for (let i = 0; i < 3; i++) {
+                const geometry = new THREE.RingGeometry(config.radius + i * 50 - 25, config.radius + i * 50 + 25, 64);
+                const material = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(i * 0.3, 0.6, 0.5),
+                    transparent: true,
+                    opacity: 0.1,
+                    side: THREE.DoubleSide
+                });
+                
+                const ring = new THREE.Mesh(geometry, material);
+                ring.rotation.x = Math.random() * Math.PI;
+                ring.rotation.y = Math.random() * Math.PI;
+                
+                orbitGroup.add(ring);
+            }
+        }
+        
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = Date.now() * 0.001;
+            
+            // 自动旋转
+            if (autoRotate) {
+                photoGroup.rotation.y += config.autoRotateSpeed * 0.01;
+                auraGroup.rotation.y += config.autoRotateSpeed * 0.01;
+            }
+            
+            // 粒子动画
+            particleGroup.rotation.y += 0.002;
+            particleGroup.rotation.x += 0.001;
+            
+            // 轨道环动画
+            orbitGroup.rotation.y += 0.001;
+            orbitGroup.rotation.x += 0.0005;
+            
+            // 光环动画
+            auras.forEach((aura, index) => {
+                aura.rotation.z += 0.02 * (index % 2 === 0 ? 1 : -1);
+                const pulse = Math.sin(time * 2 + index) * 0.1 + 0.3;
+                aura.material.opacity = pulse;
+            });
+            
+            // 心跳模式
+            if (isHeartbeatMode) {
+                const heartbeat = Math.sin(time * 8) * 0.5 + 0.5;
+                lights[0].intensity = 0.5 + heartbeat * 0.5;
+                
+                photos.forEach((photo, index) => {
+                    const scale = 1 + heartbeat * 0.1;
+                    photo.scale.set(scale, scale, scale);
+                });
+            }
+            
+            // 平滑旋转
+            photoGroup.rotation.x += (targetRotationX - photoGroup.rotation.x) * 0.05;
+            photoGroup.rotation.y += (targetRotationY - photoGroup.rotation.y) * 0.05;
+            
+            renderer.render(scene, camera);
+        }
+        
+        // 事件监听
+        function initEvents() {
+            // 窗口大小调整
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                createStarField();
+            });
+            
+            // 鼠标移动
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+                
+                targetRotationY = mouseX * 0.5;
+                targetRotationX = mouseY * 0.5;
+            });
+            
+            // 鼠标点击
+            renderer.domElement.addEventListener('click', onPhotoClick);
+            
+            // 控制按钮
+            document.getElementById('btn-rotate').addEventListener('click', toggleAutoRotate);
+            document.getElementById('btn-stats').addEventListener('click', toggleStats);
+            document.getElementById('btn-random').addEventListener('click', showRandomPhoto);
+            document.getElementById('btn-mood').addEventListener('click', changeMood);
+            document.getElementById('btn-light').addEventListener('click', toggleLights);
+            document.getElementById('btn-heartbeat').addEventListener('click', toggleHeartbeat);
+            document.getElementById('btn-upload').addEventListener('click', uploadPhoto);
+            
+            // 照片查看器关闭
+            document.getElementById('viewer-close').addEventListener('click', closePhotoViewer);
+            document.getElementById('photo-viewer').addEventListener('click', (e) => {
+                if (e.target.id === 'photo-viewer') closePhotoViewer();
+            });
+            
+            // 流星
+            meteorInterval = setInterval(createMeteor, 3000);
+        }
+        
+        // 照片点击
+        function onPhotoClick(event) {
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+            
+            const intersects = raycaster.intersectObjects(photos);
+            if (intersects.length > 0) {
+                const photo = intersects[0].object;
+                showPhotoViewer(photo.userData);
+                
+                // 添加点击效果
+                createClickEffect(photo.position);
+            }
+        }
+        
+        // 创建点击效果
+        function createClickEffect(position) {
+            for (let i = 0; i < 10; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle-trail';
+                particle.style.left = (window.innerWidth / 2) + 'px';
+                particle.style.top = (window.innerHeight / 2) + 'px';
+                
+                document.body.appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 2000);
+            }
+        }
+        
+        // 显示照片查看器
+        function showPhotoViewer(photoData) {
+            const viewer = document.getElementById('photo-viewer');
+            const image = document.getElementById('viewer-image');
+            const date = document.getElementById('viewer-date');
+            const caption = document.getElementById('viewer-caption');
+            
+            // 生成照片URL（实际项目中应该是真实照片）
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+            
+            // 绘制浪漫背景
+            const gradient = ctx.createLinearGradient(0, 0, 800, 600);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 800, 600);
+            
+            // 绘制装饰
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.font = '200px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(config.emojis[photoData.index % config.emojis.length], 400, 400);
+            
+            image.src = canvas.toDataURL();
+            date.textContent = photoData.date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+            caption.textContent = photoData.caption;
+            
+            viewer.style.display = 'flex';
+            
+            // 添加心跳背景
+            document.getElementById('heartbeat-bg').classList.add('active');
+        }
+        
+        // 关闭照片查看器
+        function closePhotoViewer() {
+            document.getElementById('photo-viewer').style.display = 'none';
+            document.getElementById('heartbeat-bg').classList.remove('active');
+        }
+        
+        // 切换自动旋转
+        function toggleAutoRotate() {
+            autoRotate = !autoRotate;
+            const btn = document.getElementById('btn-rotate');
+            btn.classList.toggle('active');
+            
+            if (autoRotate) {
+                btn.innerHTML = '<span>⏸️</span><span>停止流转</span>';
+            } else {
+                btn.innerHTML = '<span>🌙</span><span>星轨流转</span>';
+            }
+        }
+        
+        // 切换统计面板
+        function toggleStats() {
+            const panel = document.getElementById('stats-panel');
+            const isVisible = panel.style.display === 'block';
+            panel.style.display = isVisible ? 'none' : 'block';
+            
+            if (!isVisible) {
+                updateStats();
+            }
+        }
+        
+        // 更新统计
+        function updateStats() {
+            const now = new Date();
+            const days = Math.floor((now - config.startDate) / (1000 * 60 * 60 * 24));
+            
+            document.getElementById('days-count').textContent = days;
+            document.getElementById('photo-count').textContent = config.photoCount;
+            
+            // 计算甜蜜指数（基于天数和照片数）
+            const sweetIndex = Math.min(99, Math.floor((days / 365) * 50 + (config.photoCount / 100) * 50));
+            document.getElementById('sweet-index').textContent = sweetIndex;
+        }
+        
+        // 显示随机照片
+        function showRandomPhoto() {
+            const randomIndex = Math.floor(Math.random() * photos.length);
+            const photo = photos[randomIndex];
+            showPhotoViewer(photo.userData);
+            
+            // 高亮照片
+            photo.material.opacity = 1;
+            setTimeout(() => {
+                photo.material.opacity = 0.9;
+            }, 1000);
+        }
+        
+        // 改变氛围
+        function changeMood() {
+            currentMood = (currentMood + 1) % config.moods.length;
+            const mood = config.moods[currentMood];
+            
+            // 改变背景
+            const canvas = document.getElementById('stars-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const gradient = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, 0,
+                canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height)
+            );
+            
+            mood.colors.forEach((color, index) => {
+                gradient.addColorStop(index / (mood.colors.length - 1), color);
+            });
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 显示提示
+            showToast(`🎨 氛围切换：${mood.name} - ${mood.description}`);
+        }
+        
+        // 切换灯光
+        function toggleLights() {
+            lights.forEach(light => {
+                light.visible = !light.visible;
+            });
+            
+            const btn = document.getElementById('btn-light');
+            btn.classList.toggle('active');
+            
+            showToast(lights[0].visible ? '💡 星光已点亮' : '💫 星光已熄灭');
+        }
+        
+        // 切换心跳模式
+        function toggleHeartbeat() {
+            isHeartbeatMode = !isHeartbeatMode;
+            const btn = document.getElementById('btn-heartbeat');
+            btn.classList.toggle('active');
+            
+            if (isHeartbeatMode) {
+                document.getElementById('heartbeat-bg').classList.add('active');
+                showToast('💕 心跳同步已开启');
+            } else {
+                document.getElementById('heartbeat-bg').classList.remove('active');
+                showToast('💕 心跳同步已关闭');
+            }
+        }
+        
+        // 上传照片
+        function uploadPhoto() {
+            showToast('📸 照片上传功能即将开放，敬请期待！');
+        }
+        
+        // 显示提示
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px);
+                color: white;
+                padding: 20px 30px;
+                border-radius: 20px;
+                font-size: 16px;
+                z-index: 1000;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 10px 40px rgba(155, 181, 255, 0.3);
+                animation: toastFade 3s ease-in-out forwards;
+                font-family: 'Noto Serif SC', serif;
+                text-align: center;
+                max-width: 80%;
+            `;
+            toast.textContent = message;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes toastFade {
+                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+                    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+                if (style.parentNode) {
+                    style.parentNode.removeChild(style);
+                }
+            }, 3000);
+        }
+        
+        // 初始化
+        function init() {
+            createStarField();
+            initScene();
+            initEvents();
+            updateStats();
+            
+            // 隐藏加载界面
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+            }, 2000);
+            
+            // 显示手势提示
+            setTimeout(() => {
+                const hint = document.getElementById('gesture-hint');
+                hint.style.display = 'block';
+                setTimeout(() => {
+                    hint.style.display = 'none';
+                }, 5000);
+            }, 3000);
+        }
+        
+        // 启动
+        init();
+    </script>
+</body>
+</html>
