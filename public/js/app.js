@@ -10,6 +10,8 @@ import PhotoManager from './photoManager.js';
 import PerformanceManager from './performanceManager.js';
 import DebugPanel from './debugPanel.js';
 import UploadModal from './uploadModal.js';
+import EffectsManager from './effectsManager.js';
+import PhysicsParticleSystem from './particleSystem.js';
 
 class PhotoSphereApp {
     constructor() {
@@ -59,6 +61,12 @@ class PhotoSphereApp {
         // resize 节流定时器
         this.resizeTimer = null;
         
+        // 特效管理器
+        this.effectsManager = null;
+        
+        // 物理粒子系统
+        this.particleSystem = null;
+        
         // 将实例暴露到全局，供其他模块使用
         window.photoSphereApp = this;
     }
@@ -90,6 +98,12 @@ class PhotoSphereApp {
             
             // 初始化3D场景
             await this.initializeScene();
+            
+            // 初始化特效管理器
+            this.effectsManager = new EffectsManager(this.sceneManager);
+            
+            // 初始化物理粒子系统
+            this.particleSystem = new PhysicsParticleSystem();
             
             // 初始化照片管理器
             await this.initializePhotoManager();
@@ -717,6 +731,16 @@ class PhotoSphereApp {
                 this.sceneManager.orbitGroup.rotation.copy(this.sceneManager.photoGroup.rotation);
             }
         }
+        
+        // 更新特效
+        if (this.effectsManager) {
+            this.effectsManager.update();
+        }
+        
+        // 更新物理粒子系统
+        if (this.particleSystem) {
+            this.particleSystem.update();
+        }
     }
     
     /**
@@ -847,11 +871,12 @@ class PhotoSphereApp {
      * 小惊喜效果
      */
     surprise() {
-        // 流星雨效果
-        for (let i = 0; i < this.config.animations.meteorsCount; i++) {
-            setTimeout(() => {
-                this.createMeteor();
-            }, i * this.config.animations.meteorCreateDelay);
+        // 使用新的特效系统创建流星雨
+        if (this.effectsManager) {
+            this.effectsManager.createMeteorShower(15, {
+                trailLength: 80,
+                duration: 3000
+            });
         }
         
         // 照片脉冲动画
@@ -884,48 +909,24 @@ class PhotoSphereApp {
     }
     
     /**
-     * 创建流星
+     * 创建流星（兼容旧版本）
+     * @deprecated 使用 EffectsManager.createRealisticMeteor 替代
      */
     createMeteor() {
-        if (!this.sceneManager?.scene) return;
-        
-        const meteorGeometry = new THREE.CylinderGeometry(0, 2, 100, 8);
-        const meteorMaterial = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0.8,
-            blending: THREE.AdditiveBlending
-        });
-        const meteor = new THREE.Mesh(meteorGeometry, meteorMaterial);
-        
-        // 随机起始位置
-        const startX = (Math.random() - 0.5) * 2000;
-        const startY = 800 + Math.random() * 500;
-        const startZ = (Math.random() - 0.5) * 2000;
-        
-        meteor.position.set(startX, startY, startZ);
-        meteor.rotation.z = Math.PI / 4 + (Math.random() - 0.5) * Math.PI / 6;
-        
-        this.sceneManager.scene.add(meteor);
-        
-        // 流星动画
-        if (window.TWEEN) {
-            new TWEEN.Tween(meteor.position)
-                .to({
-                    x: startX - 500 - Math.random() * 500,
-                    y: -500,
-                    z: startZ + (Math.random() - 0.5) * 200
-                }, 2000)
-                .easing(TWEEN.Easing.Quadratic.In)
-                .onUpdate(() => {
-                    meteor.material.opacity = 1 - (800 - meteor.position.y) / 1300;
-                })
-                .onComplete(() => {
-                    this.sceneManager.scene.remove(meteor);
-                    meteor.geometry.dispose();
-                    meteor.material.dispose();
-                })
-                .start();
+        // 如果特效管理器可用，使用新的实现
+        if (this.effectsManager) {
+            this.effectsManager.createRealisticMeteor({
+                startPosition: new THREE.Vector3(
+                    (Math.random() - 0.5) * 2000,
+                    800 + Math.random() * 500,
+                    (Math.random() - 0.5) * 2000
+                ),
+                velocity: new THREE.Vector3(
+                    -50 - Math.random() * 100,
+                    -100 - Math.random() * 100,
+                    (Math.random() - 0.5) * 50
+                )
+            });
         }
     }
     
@@ -1052,7 +1053,7 @@ class PhotoSphereApp {
     }
     
     /**
-     * 创建浮动元素
+     * 创建浮动元素（使用物理引擎）
      */
     createFloatingElements() {
         const intervalId = setInterval(() => {
@@ -1065,9 +1066,15 @@ class PhotoSphereApp {
     }
     
     /**
-     * 创建浮动表情符号
+     * 创建浮动表情符号（使用物理粒子系统）
      */
     createFloatingEmoji(emoji = null) {
+        // 如果物理粒子系统可用，使用新的实现
+        if (this.particleSystem) {
+            return this.particleSystem.createRandomFloatingEmoji();
+        }
+        
+        // 回退到旧的实现
         const floater = document.createElement('div');
         floater.className = 'floating-emoji';
         floater.textContent = emoji || this.config.getRandomEmoji();
@@ -1159,6 +1166,16 @@ class PhotoSphereApp {
         
         if (this.sceneManager) {
             this.sceneManager.dispose();
+        }
+        
+        // 清理特效管理器
+        if (this.effectsManager) {
+            this.effectsManager.dispose();
+        }
+        
+        // 清理物理粒子系统
+        if (this.particleSystem) {
+            this.particleSystem.dispose();
         }
         
         // 清理上传模块
