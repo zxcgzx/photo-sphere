@@ -1,0 +1,2021 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>永恒之心 · 企业级渲染系统 v4.0</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700&family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Noto Serif SC', serif;
+            background: #000;
+            color: #fff;
+            touch-action: none;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ffffff" opacity="0.3"/><circle cx="12" cy="12" r="6" fill="%23ffffff" opacity="0.6"/><circle cx="12" cy="12" r="3" fill="%23ffffff"/></svg>'), auto;
+        }
+        
+        /* 星空画布 - 8K级背景 */
+        #stars-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+        }
+        
+        /* 大气层 - 体积雾效果 */
+        #atmosphere-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 42, 0.4) 50%, rgba(0, 0, 0, 0.9) 100%);
+            backdrop-filter: blur(2px);
+        }
+        
+        /* 魔法粒子层 - 1500个粒子 */
+        #magic-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .magic-dust {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, #ffffff, #9bb5ff);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: dustFloat 8s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(155, 181, 255, 0.8);
+        }
+        
+        @keyframes dustFloat {
+            0%, 100% {
+                transform: translateY(100vh) translateX(0) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100px) translateX(50px) scale(0);
+            }
+        }
+        
+        /* 主画布 - 企业级渲染 */
+        #canvas-container {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+        
+        /* 标题区域 - 电影级字体设计 */
+        #title-container {
+            position: fixed;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 50;
+            pointer-events: none;
+            animation: titleFloat 8s ease-in-out infinite;
+        }
+        
+        @keyframes titleFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0px) rotate(0deg); }
+            50% { transform: translateX(-50%) translateY(-15px) rotate(1deg); }
+        }
+        
+        #main-title {
+            font-size: 48px;
+            font-weight: 300;
+            letter-spacing: 12px;
+            background: linear-gradient(135deg, 
+                #ffffff 0%, 
+                #9bb5ff 20%, 
+                #d6b3ff 40%, 
+                #ffb3d9 60%, 
+                #ffcc99 80%, 
+                #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            text-shadow: 0 0 60px rgba(155, 181, 255, 0.8);
+            filter: drop-shadow(0 0 40px rgba(214, 179, 255, 0.6));
+            animation: titleGlow 6s ease-in-out infinite alternate;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        
+        @keyframes titleGlow {
+            0% { filter: drop-shadow(0 0 40px rgba(214, 179, 255, 0.6)); }
+            100% { filter: drop-shadow(0 0 80px rgba(155, 181, 255, 0.9)); }
+        }
+        
+        .emoji-decoration {
+            font-size: 36px;
+            animation: emojiPulse 4s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8));
+        }
+        
+        @keyframes emojiPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.3) rotate(5deg); }
+        }
+        
+        #subtitle {
+            font-size: 16px;
+            color: #d6b3ff;
+            margin-top: 20px;
+            opacity: 0.8;
+            font-weight: 300;
+            letter-spacing: 4px;
+            animation: subtitleFade 12s ease-in-out infinite;
+            font-family: 'ZCOOL KuaiLe', cursive;
+        }
+        
+        @keyframes subtitleFade {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 0.9; }
+        }
+        
+        /* 性能监控面板 - 企业级 */
+        #performance-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 12px;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            z-index: 100;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+        }
+        
+        .perf-item {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            min-width: 120px;
+        }
+        
+        /* 控制面板 - 玻璃拟态艺术 */
+        #control-panel {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(30px);
+            border-radius: 40px;
+            box-shadow: 0 15px 50px rgba(155, 181, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 90%;
+            z-index: 100;
+            animation: panelFloat 6s ease-in-out infinite;
+        }
+        
+        @keyframes panelFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0px); }
+            50% { transform: translateX(-50%) translateY(-8px); }
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 30px;
+            padding: 14px 28px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 6px 25px rgba(155, 181, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 400;
+            letter-spacing: 1px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.7s;
+        }
+        
+        .control-btn:hover::before {
+            left: 100%;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-8px) scale(1.08);
+            box-shadow: 0 12px 40px rgba(155, 181, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(214, 179, 255, 0.3);
+        }
+        
+        .control-btn:active {
+            transform: translateY(-3px) scale(0.98);
+        }
+        
+        .control-btn.active {
+            background: linear-gradient(135deg, rgba(155, 181, 255, 0.3), rgba(214, 179, 255, 0.3));
+            border-color: rgba(155, 181, 255, 0.4);
+            box-shadow: 0 0 40px rgba(155, 181, 255, 0.6);
+            color: #ffffff;
+        }
+        
+        /* 统计面板 - 时光印记 */
+        #stats-panel {
+            position: fixed;
+            top: 140px;
+            left: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(30px);
+            border-radius: 30px;
+            padding: 30px;
+            font-size: 16px;
+            box-shadow: 0 10px 40px rgba(155, 181, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+            z-index: 90;
+            animation: statsFade 1s ease-out;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        @keyframes statsFade {
+            0% { opacity: 0; transform: translateY(-30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+            color: #e0e7ff;
+            transition: all 0.4s ease;
+            padding: 8px;
+            border-radius: 15px;
+        }
+        
+        .stat-item:hover {
+            transform: translateX(10px);
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .stat-emoji {
+            font-size: 24px;
+            animation: statEmojiBounce 3s ease-in-out infinite;
+        }
+        
+        @keyframes statEmojiBounce {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.3) rotate(10deg); }
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            font-size: 18px;
+        }
+        
+        /* 照片查看器 - 时光胶囊 */
+        #photo-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.98) 0%, rgba(10, 10, 42, 0.99) 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            flex-direction: column;
+            padding: 20px;
+            backdrop-filter: blur(40px);
+        }
+        
+        #viewer-close {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            z-index: 201;
+        }
+        
+        #viewer-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg) scale(1.15);
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.4);
+        }
+        
+        #viewer-image {
+            max-width: 80%;
+            max-height: 55%;
+            object-fit: contain;
+            border-radius: 30px;
+            box-shadow: 0 30px 100px rgba(155, 181, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: photoFloat 6s ease-in-out infinite;
+            z-index: 200;
+        }
+        
+        @keyframes photoFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-15px) scale(1.02); }
+        }
+        
+        #viewer-info {
+            margin-top: 40px;
+            text-align: center;
+            color: white;
+            max-width: 700px;
+            animation: infoFade 1.2s ease-out;
+            z-index: 200;
+        }
+        
+        @keyframes infoFade {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        #viewer-date {
+            color: #9bb5ff;
+            font-size: 18px;
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(155, 181, 255, 0.6);
+            font-family: 'ZCOOL KuaiLe', cursive;
+            letter-spacing: 2px;
+        }
+        
+        #viewer-caption {
+            font-size: 20px;
+            line-height: 1.8;
+            opacity: 0.9;
+            font-weight: 300;
+            font-style: italic;
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            font-family: 'Noto Serif SC', serif;
+            letter-spacing: 1px;
+        }
+        
+        /* 心跳背景 - 多层波纹 */
+        .heartbeat-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 3s ease;
+        }
+        
+        .heartbeat-bg.active {
+            opacity: 0.4;
+        }
+        
+        .heartbeat-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 3px solid rgba(255, 179, 217, 0.4);
+            border-radius: 50%;
+            animation: heartbeat 3s ease-in-out infinite;
+        }
+        
+        .heartbeat-pulse:nth-child(1) {
+            width: 150px;
+            height: 150px;
+            animation-delay: 0s;
+        }
+        
+        .heartbeat-pulse:nth-child(2) {
+            width: 250px;
+            height: 250px;
+            animation-delay: 0.8s;
+        }
+        
+        .heartbeat-pulse:nth-child(3) {
+            width: 350px;
+            height: 350px;
+            animation-delay: 1.6s;
+        }
+        
+        @keyframes heartbeat {
+            0% { 
+                transform: translate(-50%, -50%) scale(0.6);
+                opacity: 1;
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(4);
+                opacity: 0;
+            }
+        }
+        
+        /* 加载界面 - 时空之门 */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #0a0a2a 0%, #000814 50%, #000000 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .loading-orb {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            margin-bottom: 50px;
+        }
+        
+        .loading-ring {
+            position: absolute;
+            border: 3px solid transparent;
+            border-radius: 50%;
+            animation: ringRotate 4s linear infinite;
+        }
+        
+        .loading-ring:nth-child(1) {
+            width: 100%;
+            height: 100%;
+            border-top-color: #9bb5ff;
+            border-bottom-color: #d6b3ff;
+            animation-duration: 4s;
+        }
+        
+        .loading-ring:nth-child(2) {
+            width: 80%;
+            height: 80%;
+            top: 10%;
+            left: 10%;
+            border-left-color: #ffb3d9;
+            border-right-color: #ffcc99;
+            animation-duration: 3s;
+            animation-direction: reverse;
+        }
+        
+        .loading-ring:nth-child(3) {
+            width: 60%;
+            height: 60%;
+            top: 20%;
+            left: 20%;
+            border-top-color: #ffffff;
+            border-bottom-color: #9bb5ff;
+            animation-duration: 2s;
+        }
+        
+        .loading-core {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #ffffff, #9bb5ff);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 40px rgba(155, 181, 255, 1);
+            animation: corePulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes ringRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes corePulse {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 0 0 40px rgba(155, 181, 255, 1);
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.3);
+                box-shadow: 0 0 60px rgba(214, 179, 255, 1);
+            }
+        }
+        
+        #loading-text {
+            color: #e0e7ff;
+            font-size: 20px;
+            text-shadow: 0 0 30px rgba(155, 181, 255, 0.6);
+            letter-spacing: 4px;
+            font-weight: 300;
+            margin-bottom: 30px;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .loading-quote {
+            color: #d6b3ff;
+            font-size: 16px;
+            font-style: italic;
+            opacity: 0.8;
+            max-width: 500px;
+            text-align: center;
+            line-height: 1.8;
+            margin-top: 30px;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            letter-spacing: 1px;
+        }
+        
+        #loading-progress {
+            width: 350px;
+            height: 6px;
+            background-color: rgba(155, 181, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 40px;
+        }
+        
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #9bb5ff, #d6b3ff, #ffb3d9, #ffcc99);
+            transition: width 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+            border-radius: 3px;
+            box-shadow: 0 0 30px rgba(155, 181, 255, 0.8);
+        }
+        
+        /* 手势提示 - 诗意化 */
+        #gesture-hint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px);
+            color: white;
+            padding: 40px 50px;
+            border-radius: 30px;
+            font-size: 20px;
+            z-index: 150;
+            display: none;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 60px rgba(155, 181, 255, 0.3);
+            animation: hintPulse 4s ease-in-out infinite;
+            font-family: 'Noto Serif SC', serif;
+            line-height: 1.8;
+            max-width: 80%;
+        }
+        
+        @keyframes hintPulse {
+            0%, 100% { 
+                opacity: 0.9;
+                box-shadow: 0 20px 60px rgba(155, 181, 255, 0.3);
+            }
+            50% { 
+                opacity: 1;
+                box-shadow: 0 20px 80px rgba(155, 181, 255, 0.5);
+            }
+        }
+        
+        .hint-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+        
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            #main-title {
+                font-size: 28px;
+                letter-spacing: 6px;
+            }
+            
+            .emoji-decoration {
+                font-size: 24px;
+            }
+            
+            #subtitle {
+                font-size: 12px;
+                letter-spacing: 2px;
+            }
+            
+            #control-panel {
+                bottom: 20px;
+                padding: 15px;
+                gap: 8px;
+                border-radius: 25px;
+            }
+            
+            .control-btn {
+                padding: 10px 16px;
+                font-size: 11px;
+                min-width: auto;
+            }
+            
+            #stats-panel {
+                top: 100px;
+                left: 20px;
+                padding: 20px;
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #main-title {
+                font-size: 20px;
+                letter-spacing: 4px;
+            }
+            
+            .control-btn {
+                padding: 8px 12px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="stars-canvas"></canvas>
+    <div id="atmosphere-layer"></div>
+    <div id="magic-particles"></div>
+    
+    <!-- 心跳背景 -->
+    <div class="heartbeat-bg" id="heartbeat-bg">
+        <div class="heartbeat-pulse"></div>
+        <div class="heartbeat-pulse"></div>
+        <div class="heartbeat-pulse"></div>
+    </div>
+    
+    <!-- 性能监控面板 -->
+    <div id="performance-panel">
+        <div class="perf-item">
+            <span>FPS:</span>
+            <span id="fps-counter">0</span>
+        </div>
+        <div class="perf-item">
+            <span>渲染:</span>
+            <span id="render-time">0ms</span>
+        </div>
+        <div class="perf-item">
+            <span>粒子:</span>
+            <span id="particle-count">0</span>
+        </div>
+        <div class="perf-item">
+            <span>内存:</span>
+            <span id="memory-usage">0MB</span>
+        </div>
+    </div>
+    
+    <div id="canvas-container"></div>
+    
+    <div id="title-container">
+        <h1 id="main-title">
+            <span class="emoji-decoration">💖</span>
+            <span>永恒之心</span>
+            <span class="emoji-decoration">✨</span>
+        </h1>
+        <div id="subtitle">在时间的尽头，我们相遇</div>
+    </div>
+    
+    <div id="stats-panel">
+        <div class="stat-item">
+            <span class="stat-emoji">💫</span>
+            <span>永恒时光 <span class="stat-value" id="days-count">0</span> 天</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-emoji">🌟</span>
+            <span>星辰记忆 <span class="stat-value" id="photo-count">0</span> 颗</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-emoji">💕</span>
+            <span>心动指数 <span class="stat-value" id="sweet-index">99</span>%</span>
+        </div>
+    </div>
+    
+    <div id="control-panel">
+        <button class="control-btn" id="btn-rotate">
+            <span>🌙</span>
+            <span>星轨流转</span>
+        </button>
+        <button class="control-btn" id="btn-stats">
+            <span>📜</span>
+            <span>时光卷轴</span>
+        </button>
+        <button class="control-btn" id="btn-random">
+            <span>🎲</span>
+            <span>随机回忆</span>
+        </button>
+        <button class="control-btn" id="btn-mood">
+            <span>🎨</span>
+            <span>星云变幻</span>
+        </button>
+        <button class="control-btn" id="btn-light">
+            <span>💫</span>
+            <span>星光闪烁</span>
+        </button>
+        <button class="control-btn" id="btn-heartbeat">
+            <span>💕</span>
+            <span>心跳同步</span>
+        </button>
+        <button class="control-btn" id="btn-customizer">
+            <span>💎</span>
+            <span>永恒之心</span>
+        </button>
+        <button class="control-btn" id="btn-upload">
+            <span>📸</span>
+            <span>捕捉时光</span>
+        </button>
+    </div>
+    
+    <div id="photo-viewer">
+        <div id="viewer-close">×</div>
+        <img id="viewer-image" src="" alt="">
+        <div id="viewer-info">
+            <div id="viewer-date"></div>
+            <div id="viewer-caption"></div>
+        </div>
+    </div>
+    
+    <div id="gesture-hint">
+        <div class="hint-icon">🌌</div>
+        <div>轻触星辰，唤醒回忆<br>双指轻舞，遨游星海</div>
+    </div>
+    
+    <div id="loading-screen">
+        <div class="loading-orb">
+            <div class="loading-ring"></div>
+            <div class="loading-ring"></div>
+            <div class="loading-ring"></div>
+            <div class="loading-core"></div>
+        </div>
+        <p id="loading-text">正在编织我们的永恒宇宙...</p>
+        <div id="loading-progress">
+            <div id="progress-bar"></div>
+        </div>
+        <div class="loading-quote" id="loading-quote">"在亿万星辰中，我找到了你"</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    
+    <script>
+        // 企业级配置系统
+        const EnterpriseConfig = {
+            // 渲染设置
+            rendering: {
+                pixelRatio: Math.min(window.devicePixelRatio, 2),
+                shadowMap: true,
+                shadowMapType: THREE.PCFSoftShadowMap,
+                outputEncoding: THREE.sRGBEncoding,
+                toneMapping: THREE.ACESFilmicToneMapping,
+                toneMappingExposure: 1.2,
+                antialias: true,
+                powerPreference: 'high-performance'
+            },
+            
+            // 场景设置
+            scene: {
+                radius: 320,
+                particleCount: 1500,
+                imageSize: 70,
+                autoRotateSpeed: 0.1,
+                startDate: new Date('2024-01-01'),
+                photoCount: 99,
+                starsCount: 5000,
+                galaxyColors: ['#9bb5ff', '#9d9dff', '#ffcc99', '#ff9999', '#ffb3d9', '#d6b3ff', '#c0c0c0']
+            },
+            
+            // 光照设置
+            lighting: {
+                ambientIntensity: 0.3,
+                pointLightIntensity: 1.5,
+                pointLightDistance: 2000,
+                auxiliaryLights: 4,
+                auxiliaryIntensity: 0.8,
+                auxiliaryDistance: 1500
+            },
+            
+            // 材质设置
+            materials: {
+                roughness: 0.3,
+                metalness: 0.1,
+                emissiveIntensity: 0.1,
+                opacity: 0.95,
+                transparent: true
+            },
+            
+            // 性能设置
+            performance: {
+                maxFPS: 60,
+                particleUpdateRate: 0.02,
+                auraRotationSpeed: 0.03,
+                orbitRotationSpeed: 0.002
+            }
+        };
+        
+        // 全局变量
+        let scene, camera, renderer;
+        let photoGroup, particleGroup, auraGroup, orbitGroup, heartGroup;
+        let photos = [];
+        let particles = [];
+        let auras = [];
+        let lights = [];
+        let autoRotate = false;
+        let currentMood = 0;
+        let isHeartbeatMode = false;
+        let mouseX = 0, mouseY = 0;
+        let targetRotationX = 0, targetRotationY = 0;
+        let magicParticleInterval;
+        let loadingQuotes = [
+            "在亿万星辰中，我找到了你",
+            "时光荏苒，爱你如初",
+            "你是我的永恒之心",
+            "宇宙浩瀚，唯爱永恒",
+            "星辰为证，时光为鉴",
+            "爱你，是我做过最好的事",
+            "每一颗星辰，都是我们的回忆",
+            "在时间的尽头，我依然爱你"
+        ];
+        
+        // 性能监控
+        let performanceMetrics = {
+            fps: 0,
+            frameTime: 0,
+            particleCount: 0,
+            memoryUsage: 0,
+            lastTime: performance.now(),
+            frameCount: 0
+        };
+        
+        // 初始化星空背景 - 8K级渲染
+        function createStarField() {
+            const canvas = document.getElementById('stars-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth * EnterpriseConfig.rendering.pixelRatio;
+            canvas.height = window.innerHeight * EnterpriseConfig.rendering.pixelRatio;
+            ctx.scale(EnterpriseConfig.rendering.pixelRatio, EnterpriseConfig.rendering.pixelRatio);
+            
+            // 创建8K级深邃背景
+            const gradient = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, 0,
+                canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height)
+            );
+            gradient.addColorStop(0, '#0a0a2a');
+            gradient.addColorStop(0.3, '#000814');
+            gradient.addColorStop(0.7, '#000000');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 创建5000颗高质量星星
+            for (let i = 0; i < EnterpriseConfig.scene.starsCount; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 2.5;
+                const opacity = Math.random() * 0.8 + 0.2;
+                const twinkleSpeed = Math.random() * 0.05 + 0.01;
+                
+                // 星星闪烁效果
+                const twinkle = Math.sin(Date.now() * twinkleSpeed + i) * 0.5 + 0.5;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity * twinkle})`;
+                ctx.fill();
+                
+                // 添加高质量星光效果
+                if (Math.random() > 0.98) {
+                    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 8);
+                    glow.addColorStop(0, `rgba(155, 181, 255, ${opacity})`);
+                    glow.addColorStop(0.5, `rgba(155, 181, 255, ${opacity * 0.5})`);
+                    glow.addColorStop(1, 'transparent');
+                    ctx.fillStyle = glow;
+                    ctx.fillRect(x - radius * 8, y - radius * 8, radius * 16, radius * 16);
+                }
+                
+                // 十字星芒（极亮星）
+                if (Math.random() > 0.997) {
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.8})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(x - radius * 12, y);
+                    ctx.lineTo(x + radius * 12, y);
+                    ctx.moveTo(x, y - radius * 12);
+                    ctx.lineTo(x, y + radius * 12);
+                    ctx.stroke();
+                }
+            }
+            
+            // 添加6层高质量星云
+            for (let i = 0; i < 6; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 400 + 200;
+                const color = EnterpriseConfig.scene.galaxyColors[Math.floor(Math.random() * EnterpriseConfig.scene.galaxyColors.length)];
+                
+                const nebula = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                nebula.addColorStop(0, color + '25');
+                nebula.addColorStop(0.5, color + '15');
+                nebula.addColorStop(1, 'transparent');
+                ctx.fillStyle = nebula;
+                ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+            }
+        }
+        
+        // 创建魔法粒子
+        function createMagicParticle() {
+            const particleLayer = document.getElementById('magic-particles');
+            const particle = document.createElement('div');
+            particle.className = 'magic-dust';
+            
+            const startX = Math.random() * window.innerWidth;
+            const duration = Math.random() * 4 + 6;
+            
+            particle.style.left = startX + 'px';
+            particle.style.animationDuration = duration + 's';
+            particle.style.animationDelay = Math.random() * 2 + 's';
+            
+            particleLayer.appendChild(particle);
+            
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, (duration + 2) * 1000);
+        }
+        
+        // 初始化Three.js场景 - 企业级渲染器
+        function initScene() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.0005);
+            
+            camera = new THREE.PerspectiveCamera(
+                75, 
+                window.innerWidth / window.innerHeight, 
+                0.1, 
+                3000
+            );
+            camera.position.z = 800;
+            
+            // 企业级渲染器配置
+            renderer = new THREE.WebGLRenderer({
+                antialias: EnterpriseConfig.rendering.antialias,
+                alpha: true,
+                powerPreference: EnterpriseConfig.rendering.powerPreference
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(EnterpriseConfig.rendering.pixelRatio);
+            renderer.setClearColor(0x000000, 0);
+            
+            // 启用阴影
+            renderer.shadowMap.enabled = EnterpriseConfig.rendering.shadowMap;
+            renderer.shadowMap.type = EnterpriseConfig.rendering.shadowMapType;
+            renderer.outputEncoding = EnterpriseConfig.rendering.outputEncoding;
+            renderer.toneMapping = EnterpriseConfig.rendering.toneMapping;
+            renderer.toneMappingExposure = EnterpriseConfig.rendering.toneMappingExposure;
+            
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // 创建场景组
+            photoGroup = new THREE.Group();
+            scene.add(photoGroup);
+            
+            particleGroup = new THREE.Group();
+            scene.add(particleGroup);
+            
+            auraGroup = new THREE.Group();
+            scene.add(auraGroup);
+            
+            orbitGroup = new THREE.Group();
+            scene.add(orbitGroup);
+            
+            heartGroup = new THREE.Group();
+            scene.add(heartGroup);
+            
+            // 添加环境光
+            const ambientLight = new THREE.AmbientLight(
+                0x404080, 
+                EnterpriseConfig.lighting.ambientIntensity
+            );
+            scene.add(ambientLight);
+            
+            // 添加主光源
+            const mainLight = new THREE.PointLight(
+                0xffffff,
+                EnterpriseConfig.lighting.pointLightIntensity,
+                EnterpriseConfig.lighting.pointLightDistance
+            );
+            mainLight.position.set(0, 0, 0);
+            mainLight.castShadow = true;
+            mainLight.shadow.mapSize.width = 2048;
+            mainLight.shadow.mapSize.height = 2048;
+            scene.add(mainLight);
+            lights.push(mainLight);
+            
+            // 添加彩色辅助光源
+            const colors = [0x9bb5ff, 0xd6b3ff, 0xffb3d9, 0xffcc99];
+            for (let i = 0; i < EnterpriseConfig.lighting.auxiliaryLights; i++) {
+                const light = new THREE.PointLight(
+                    colors[i],
+                    EnterpriseConfig.lighting.auxiliaryIntensity,
+                    EnterpriseConfig.lighting.auxiliaryDistance
+                );
+                const angle = (i / colors.length) * Math.PI * 2;
+                light.position.set(
+                    Math.cos(angle) * 400,
+                    Math.sin(angle) * 400,
+                    Math.sin(angle) * 200
+                );
+                scene.add(light);
+                lights.push(light);
+            }
+            
+            // 创建场景内容
+            createPhotoSphere();
+            createAdvancedParticleSystem();
+            createOrbitRings();
+            createEternalHeart();
+            
+            // 开始渲染循环
+            animate();
+        }
+        
+        // 创建照片球体 - 企业级分布
+        function createPhotoSphere() {
+            const geometry = new THREE.SphereGeometry(EnterpriseConfig.scene.radius, 64, 64);
+            const positions = geometry.attributes.position.array;
+            
+            // 使用斐波那契螺旋分布照片 - 最优视觉分布
+            const goldenRatio = (1 + Math.sqrt(5)) / 2;
+            const photoIndices = [];
+            
+            for (let i = 0; i < EnterpriseConfig.scene.photoCount; i++) {
+                const y = 1 - (i / (EnterpriseConfig.scene.photoCount - 1)) * 2;
+                const radius = Math.sqrt(1 - y * y);
+                const theta = goldenRatio * i * Math.PI * 2;
+                
+                const x = Math.cos(theta) * radius;
+                const z = Math.sin(theta) * radius;
+                
+                // 找到最近的顶点
+                let minDist = Infinity;
+                let minIndex = 0;
+                
+                for (let j = 0; j < positions.length / 3; j++) {
+                    const dx = positions[j * 3] - x * EnterpriseConfig.scene.radius;
+                    const dy = positions[j * 3 + 1] - y * EnterpriseConfig.scene.radius;
+                    const dz = positions[j * 3 + 2] - z * EnterpriseConfig.scene.radius;
+                    const dist = dx * dx + dy * dy + dz * dz;
+                    
+                    if (dist < minDist) {
+                        minDist = dist;
+                        minIndex = j;
+                    }
+                }
+                
+                photoIndices.push(minIndex);
+            }
+            
+            // 创建高质量照片
+            photoIndices.forEach((index, i) => {
+                const x = positions[index * 3];
+                const y = positions[index * 3 + 1];
+                const z = positions[index * 3 + 2];
+                
+                createEnterprisePhoto(x, y, z, i);
+            });
+        }
+        
+        // 创建企业级照片
+        function createEnterprisePhoto(x, y, z, index) {
+            // 创建高分辨率画布
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+            
+            // 绘制企业级背景
+            const gradient = ctx.createRadialGradient(512, 512, 0, 512, 512, 512);
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(0.7, '#f8f8ff');
+            gradient.addColorStop(1, '#e6e6fa');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1024, 1024);
+            
+            // 绘制企业级心形装饰
+            const heartColor = `hsl(${(index * 137.5) % 360}, 70%, 70%)`;
+            ctx.fillStyle = heartColor;
+            ctx.shadowColor = heartColor;
+            ctx.shadowBlur = 40;
+            drawEnterpriseHeart(ctx, 512, 512, 160);
+            ctx.shadowBlur = 0;
+            
+            // 添加高质量文字
+            ctx.fillStyle = heartColor;
+            ctx.font = 'bold 96px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(config.emojis[index % config.emojis.length], 512, 560);
+            
+            // 添加序号
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.font = '48px serif';
+            ctx.fillText(`#${index + 1}`, 100, 100);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.generateMipmaps = false;
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            
+            // 企业级PBR材质
+            const material = new THREE.MeshStandardMaterial({
+                map: texture,
+                transparent: EnterpriseConfig.materials.transparent,
+                opacity: EnterpriseConfig.materials.opacity,
+                roughness: EnterpriseConfig.materials.roughness,
+                metalness: EnterpriseConfig.materials.metalness,
+                emissive: new THREE.Color(heartColor).multiplyScalar(EnterpriseConfig.materials.emissiveIntensity)
+            });
+            
+            // 创建照片网格
+            const geometry = new THREE.PlaneGeometry(EnterpriseConfig.scene.imageSize, EnterpriseConfig.scene.imageSize);
+            const photo = new THREE.Mesh(geometry, material);
+            photo.position.set(x, y, z);
+            photo.lookAt(0, 0, 0);
+            
+            // 添加用户数据
+            photo.userData = {
+                index: index,
+                originalPosition: { x, y, z },
+                caption: config.captions[index % config.captions.length],
+                date: new Date(config.startDate.getTime() + index * 24 * 60 * 60 * 1000),
+                isHovered: false,
+                heartColor: heartColor,
+                originalScale: 1
+            };
+            
+            photoGroup.add(photo);
+            photos.push(photo);
+            
+            // 创建企业级光环
+            createEnterpriseAura(x, y, z, index, heartColor);
+        }
+        
+        // 绘制企业级心形
+        function drawEnterpriseHeart(ctx, x, y, size) {
+            ctx.beginPath();
+            ctx.moveTo(x, y + size / 4);
+            
+            // 左侧曲线
+            ctx.bezierCurveTo(x, y - size / 4, x - size / 2, y - size / 4, x - size / 2, y);
+            
+            // 左侧圆形
+            ctx.bezierCurveTo(x - size / 2, y + size / 4, x, y + size / 2, x, y + size);
+            
+            // 右侧圆形
+            ctx.bezierCurveTo(x, y + size / 2, x + size / 2, y + size / 4, x + size / 2, y);
+            
+            // 右侧曲线
+            ctx.bezierCurveTo(x + size / 2, y - size / 4, x, y - size / 4, x, y + size / 4);
+            
+            ctx.fill();
+        }
+        
+        // 创建企业级光环
+        function createEnterpriseAura(x, y, z, index, heartColor) {
+            // 主光环（外层）
+            const mainGeometry = new THREE.RingGeometry(
+                EnterpriseConfig.scene.imageSize * 0.7, 
+                EnterpriseConfig.scene.imageSize * 0.9, 
+                64
+            );
+            const mainMaterial = new THREE.MeshBasicMaterial({
+                color: new THREE.Color(heartColor),
+                transparent: true,
+                opacity: 0.2,
+                side: THREE.DoubleSide
+            });
+            
+            const mainAura = new THREE.Mesh(mainGeometry, mainMaterial);
+            mainAura.position.set(x, y, z);
+            mainAura.lookAt(0, 0, 0);
+            mainAura.rotateZ(Math.PI / 2);
+            
+            auraGroup.add(mainAura);
+            auras.push(mainAura);
+            
+            // 内光环（内层）
+            const innerGeometry = new THREE.RingGeometry(
+                EnterpriseConfig.scene.imageSize * 0.5, 
+                EnterpriseConfig.scene.imageSize * 0.65, 
+                32
+            );
+            const innerMaterial = new THREE.MeshBasicMaterial({
+                color: new THREE.Color(heartColor),
+                transparent: true,
+                opacity: 0.1,
+                side: THREE.DoubleSide
+            });
+            
+            const innerAura = new THREE.Mesh(innerGeometry, innerMaterial);
+            innerAura.position.set(x, y, z);
+            innerAura.lookAt(0, 0, 0);
+            innerAura.rotateZ(Math.PI / 2);
+            
+            auraGroup.add(innerAura);
+            auras.push(innerAura);
+        }
+        
+        // 创建企业级粒子系统
+        function createEnterpriseParticleSystem() {
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(EnterpriseConfig.scene.particleCount * 3);
+            const colors = new Float32Array(EnterpriseConfig.scene.particleCount * 3);
+            const sizes = new Float32Array(EnterpriseConfig.scene.particleCount);
+            const velocities = new Float32Array(EnterpriseConfig.scene.particleCount * 3);
+            
+            for (let i = 0; i < EnterpriseConfig.scene.particleCount; i++) {
+                const i3 = i * 3;
+                
+                // 球形分布
+                const radius = EnterpriseConfig.scene.radius + Math.random() * 300 - 150;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(Math.random() * 2 - 1);
+                
+                positions[i3] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i3 + 2] = radius * Math.cos(phi);
+                
+                // 彩虹色彩
+                const color = new THREE.Color().setHSL(
+                    (i / EnterpriseConfig.scene.particleCount + Math.random() * 0.1) % 1, 
+                    0.8, 
+                    0.7
+                );
+                colors[i3] = color.r;
+                colors[i3 + 1] = color.g;
+                colors[i3 + 2] = color.b;
+                
+                // 随机大小
+                sizes[i] = Math.random() * 4 + 1;
+                
+                // 随机速度
+                velocities[i3] = (Math.random() - 0.5) * EnterpriseConfig.performance.particleUpdateRate;
+                velocities[i3 + 1] = (Math.random() - 0.5) * EnterpriseConfig.performance.particleUpdateRate;
+                velocities[i3 + 2] = (Math.random() - 0.5) * EnterpriseConfig.performance.particleUpdateRate;
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 3,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true
+            });
+            
+            const particleSystem = new THREE.Points(geometry, material);
+            particleGroup.add(particleSystem);
+            particles.push(particleSystem);
+            
+            // 更新性能指标
+            performanceMetrics.particleCount = EnterpriseConfig.scene.particleCount;
+        }
+        
+        // 创建轨道环
+        function createOrbitRings() {
+            for (let i = 0; i < 5; i++) {
+                const geometry = new THREE.RingGeometry(
+                    EnterpriseConfig.scene.radius + i * 40 - 20, 
+                    EnterpriseConfig.scene.radius + i * 40 + 20, 
+                    128
+                );
+                const material = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(i * 0.2, 0.7, 0.6),
+                    transparent: true,
+                    opacity: 0.08,
+                    side: THREE.DoubleSide
+                });
+                
+                const ring = new THREE.Mesh(geometry, material);
+                ring.rotation.x = Math.random() * Math.PI;
+                ring.rotation.y = Math.random() * Math.PI;
+                ring.rotation.z = Math.random() * Math.PI;
+                
+                orbitGroup.add(ring);
+            }
+        }
+        
+        // 创建永恒之心
+        function createEternalHeart() {
+            const heartShape = new THREE.Shape();
+            const x = 0, y = 0;
+            const size = 30;
+            
+            heartShape.moveTo(x, y + size / 4);
+            heartShape.bezierCurveTo(x, y - size / 4, x - size / 2, y - size / 4, x - size / 2, y);
+            heartShape.bezierCurveTo(x - size / 2, y + size / 4, x, y + size / 2, x, y + size);
+            heartShape.bezierCurveTo(x, y + size / 2, x + size / 2, y + size / 4, x + size / 2, y);
+            heartShape.bezierCurveTo(x + size / 2, y - size / 4, x, y - size / 4, x, y + size / 4);
+            
+            const geometry = new THREE.ExtrudeGeometry(heartShape, {
+                depth: 10,
+                bevelEnabled: true,
+                bevelSegments: 8,
+                steps: 2,
+                bevelSize: 3,
+                bevelThickness: 3
+            });
+            
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xff69b4,
+                emissive: 0xff1493,
+                emissiveIntensity: 0.3,
+                roughness: 0.2,
+                metalness: 0.8,
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            const heart = new THREE.Mesh(geometry, material);
+            heart.position.set(0, 0, 0);
+            heart.scale.set(2, 2, 2);
+            heart.castShadow = true;
+            heart.receiveShadow = true;
+            
+            heartGroup.add(heart);
+            
+            // 心脏光环
+            const ringGeometry = new THREE.TorusGeometry(80, 5, 16, 100);
+            const ringMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff1493,
+                transparent: true,
+                opacity: 0.3
+            });
+            
+            const heartRing = new THREE.Mesh(ringGeometry, ringMaterial);
+            heartRing.rotation.x = Math.PI / 2;
+            heartGroup.add(heartRing);
+        }
+        
+        // 动画循环 - 企业级性能优化
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = Date.now() * 0.001;
+            
+            // 更新性能监控
+            updatePerformanceMetrics();
+            
+            // 自动旋转
+            if (autoRotate) {
+                const rotateSpeed = EnterpriseConfig.performance.autoRotateSpeed;
+                photoGroup.rotation.y += rotateSpeed * 0.01;
+                auraGroup.rotation.y += rotateSpeed * 0.01;
+                orbitGroup.rotation.y += rotateSpeed * 0.005;
+            }
+            
+            // 企业级粒子动画
+            particles.forEach(particle => {
+                particle.rotation.y += 0.003;
+                particle.rotation.x += 0.001;
+                
+                // 更新粒子位置（物理模拟）
+                const positions = particle.geometry.attributes.position.array;
+                const velocities = particle.geometry.attributes.velocity.array;
+                
+                for (let i = 0; i < positions.length; i += 3) {
+                    positions[i] += velocities[i];
+                    positions[i + 1] += velocities[i + 1];
+                    positions[i + 2] += velocities[i + 2];
+                    
+                    // 边界反弹
+                    const dist = Math.sqrt(
+                        positions[i] ** 2 + 
+                        positions[i + 1] ** 2 + 
+                        positions[i + 2] ** 2
+                    );
+                    
+                    if (dist > EnterpriseConfig.scene.radius + 300 || dist < EnterpriseConfig.scene.radius - 300) {
+                        velocities[i] *= -1;
+                        velocities[i + 1] *= -1;
+                        velocities[i + 2] *= -1;
+                    }
+                }
+                
+                particle.geometry.attributes.position.needsUpdate = true;
+            });
+            
+            // 轨道环动画
+            orbitGroup.rotation.y += EnterpriseConfig.performance.orbitRotationSpeed;
+            orbitGroup.rotation.x += EnterpriseConfig.performance.orbitRotationSpeed * 0.5;
+            orbitGroup.rotation.z += EnterpriseConfig.performance.orbitRotationSpeed * 0.25;
+            
+            // 光环动画
+            auras.forEach((aura, index) => {
+                aura.rotation.z += EnterpriseConfig.performance.auraRotationSpeed * (index % 2 === 0 ? 1 : -1);
+                const pulse = Math.sin(time * 2 + index * 0.5) * 0.15 + 0.3;
+                aura.material.opacity = pulse;
+                
+                // 颜色变化
+                const hue = (time * 10 + index * 30) % 360;
+                aura.material.color.setHSL(hue / 360, 0.7, 0.6);
+            });
+            
+            // 心脏动画
+            if (heartGroup.children.length > 0) {
+                const heart = heartGroup.children[0];
+                const ring = heartGroup.children[1];
+                
+                heart.rotation.y = time * 0.5;
+                heart.position.y = Math.sin(time * 2) * 10;
+                
+                ring.rotation.z = time * 0.3;
+                ring.scale.setScalar(1 + Math.sin(time * 3) * 0.1);
+            }
+            
+            // 心跳模式
+            if (isHeartbeatMode) {
+                const heartbeat = Math.sin(time * 8) * 0.5 + 0.5;
+                lights[0].intensity = 0.5 + heartbeat * 1.0;
+                
+                photos.forEach((photo, index) => {
+                    const scale = 1 + heartbeat * 0.15;
+                    photo.scale.set(scale, scale, scale);
+                    photo.material.emissiveIntensity = heartbeat * 0.3;
+                });
+            }
+            
+            // 平滑旋转
+            photoGroup.rotation.x += (targetRotationX - photoGroup.rotation.x) * 0.03;
+            photoGroup.rotation.y += (targetRotationY - photoGroup.rotation.y) * 0.03;
+            
+            renderer.render(scene, camera);
+        }
+        
+        // 更新性能监控
+        function updatePerformanceMetrics() {
+            performanceMetrics.frameCount++;
+            const currentTime = performance.now();
+            
+            if (currentTime - performanceMetrics.lastTime >= 1000) {
+                performanceMetrics.fps = Math.round(
+                    (performanceMetrics.frameCount * 1000) / (currentTime - performanceMetrics.lastTime)
+                );
+                performanceMetrics.frameCount = 0;
+                performanceMetrics.lastTime = currentTime;
+                
+                // 更新显示
+                document.getElementById('fps-counter').textContent = performanceMetrics.fps;
+                document.getElementById('particle-count').textContent = performanceMetrics.particleCount;
+                
+                // 内存使用（如果可用）
+                if (performance.memory) {
+                    const memoryMB = Math.round(performance.memory.usedJSHeapSize / 1048576);
+                    document.getElementById('memory-usage').textContent = memoryMB + 'MB';
+                }
+            }
+        }
+        
+        // 事件监听 - 企业级交互
+        function initEvents() {
+            // 窗口大小调整
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(EnterpriseConfig.rendering.pixelRatio);
+                createStarField();
+            });
+            
+            // 鼠标移动
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+                
+                targetRotationY = mouseX * 0.5;
+                targetRotationX = mouseY * 0.5;
+            });
+            
+            // 鼠标点击
+            renderer.domElement.addEventListener('click', onPhotoClick);
+            
+            // 控制按钮
+            document.getElementById('btn-rotate').addEventListener('click', toggleAutoRotate);
+            document.getElementById('btn-stats').addEventListener('click', toggleStats);
+            document.getElementById('btn-random').addEventListener('click', showRandomPhoto);
+            document.getElementById('btn-mood').addEventListener('click', changeMood);
+            document.getElementById('btn-light').addEventListener('click', toggleLights);
+            document.getElementById('btn-heartbeat').addEventListener('click', toggleHeartbeat);
+            document.getElementById('btn-customizer').addEventListener('click', openCustomizer);
+            document.getElementById('btn-upload').addEventListener('click', uploadPhoto);
+            
+            // 照片查看器关闭
+            document.getElementById('viewer-close').addEventListener('click', closePhotoViewer);
+            document.getElementById('photo-viewer').addEventListener('click', (e) => {
+                if (e.target.id === 'photo-viewer') closePhotoViewer();
+            });
+            
+            // 魔法粒子
+            magicParticleInterval = setInterval(createMagicParticle, 800);
+        }
+        
+        // 照片点击 - 企业级交互
+        function onPhotoClick(event) {
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+            
+            const intersects = raycaster.intersectObjects(photos);
+            if (intersects.length > 0) {
+                const photo = intersects[0].object;
+                showPhotoViewer(photo.userData);
+                
+                // 企业级点击效果
+                createEnterpriseClickEffect(photo.position, photo.userData.heartColor);
+                
+                // 照片动画
+                const originalScale = photo.userData.originalScale;
+                photo.scale.set(originalScale * 1.2, originalScale * 1.2, originalScale * 1.2);
+                setTimeout(() => {
+                    photo.scale.set(originalScale, originalScale, originalScale);
+                }, 300);
+            }
+        }
+        
+        // 创建企业级点击效果
+        function createEnterpriseClickEffect(position, color) {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.style.cssText = `
+                        position: absolute;
+                        width: 8px;
+                        height: 8px;
+                        background: radial-gradient(circle, ${color}, transparent);
+                        border-radius: 50%;
+                        pointer-events: none;
+                        left: 50%;
+                        top: 50%;
+                        transform: translate(-50%, -50%);
+                        animation: particleBurst 1.5s ease-out forwards;
+                    `;
+                    
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @keyframes particleBurst {
+                            0% {
+                                transform: translate(-50%, -50%) translate(0, 0) scale(1);
+                                opacity: 1;
+                            }
+                            100% {
+                                transform: translate(-50%, -50%) translate(${(Math.random() - 0.5) * 200}px, ${(Math.random() - 0.5) * 200}px) scale(0);
+                                opacity: 0;
+                            }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                    document.body.appendChild(particle);
+                    
+                    setTimeout(() => {
+                        if (particle.parentNode) particle.parentNode.removeChild(particle);
+                        if (style.parentNode) style.parentNode.removeChild(style);
+                    }, 1500);
+                }, i * 50);
+            }
+        }
+        
+        // 显示照片查看器
+        function showPhotoViewer(photoData) {
+            const viewer = document.getElementById('photo-viewer');
+            const image = document.getElementById('viewer-image');
+            const date = document.getElementById('viewer-date');
+            const caption = document.getElementById('viewer-caption');
+            
+            // 生成高质量照片
+            const canvas = document.createElement('canvas');
+            canvas.width = 2400;
+            canvas.height = 1600;
+            const ctx = canvas.getContext('2d');
+            
+            // 绘制企业级背景
+            const gradient = ctx.createLinearGradient(0, 0, 2400, 1600);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 2400, 1600);
+            
+            // 绘制装饰心形
+            ctx.fillStyle = photoData.heartColor;
+            ctx.shadowColor = photoData.heartColor;
+            ctx.shadowBlur = 80;
+            drawEnterpriseHeart(ctx, 1200, 800, 300);
+            ctx.shadowBlur = 0;
+            
+            // 添加大emoji
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.font = '600px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(config.emojis[photoData.index % config.emojis.length], 1200, 800);
+            
+            // 添加序号
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.font = '96px serif';
+            ctx.fillText(`#${photoData.index + 1}`, 200, 200);
+            
+            image.src = canvas.toDataURL();
+            
+            // 格式化日期
+            const dateStr = photoData.date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            date.textContent = `📅 ${dateStr}`;
+            caption.textContent = photoData.caption;
+            
+            viewer.style.display = 'flex';
+            
+            // 添加心跳背景
+            document.getElementById('heartbeat-bg').classList.add('active');
+        }
+        
+        // 关闭照片查看器
+        function closePhotoViewer() {
+            document.getElementById('photo-viewer').style.display = 'none';
+            document.getElementById('heartbeat-bg').classList.remove('active');
+        }
+        
+        // 切换自动旋转
+        function toggleAutoRotate() {
+            autoRotate = !autoRotate;
+            const btn = document.getElementById('btn-rotate');
+            btn.classList.toggle('active');
+            
+            if (autoRotate) {
+                btn.innerHTML = '<span>⏸️</span><span>停止流转</span>';
+                showToast('🌙 星轨流转已开启');
+            } else {
+                btn.innerHTML = '<span>🌙</span><span>星轨流转</span>';
+                showToast('🌙 星轨流转已停止');
+            }
+        }
+        
+        // 切换统计面板
+        function toggleStats() {
+            const panel = document.getElementById('stats-panel');
+            const isVisible = panel.style.display === 'block';
+            panel.style.display = isVisible ? 'none' : 'block';
+            
+            if (!isVisible) {
+                updateStats();
+                showToast('📜 时光卷轴已展开');
+            } else {
+                showToast('📜 时光卷轴已收起');
+            }
+        }
+        
+        // 更新统计
+        function updateStats() {
+            const now = new Date();
+            const days = Math.floor((now - config.startDate) / (1000 * 60 * 60 * 24));
+            
+            document.getElementById('days-count').textContent = days;
+            document.getElementById('photo-count').textContent = config.photoCount;
+            
+            // 计算甜蜜指数
+            const sweetIndex = Math.min(99, Math.floor((days / 365) * 50 + (config.photoCount / 100) * 50));
+            document.getElementById('sweet-index').textContent = sweetIndex;
+        }
+        
+        // 显示随机照片
+        function showRandomPhoto() {
+            const randomIndex = Math.floor(Math.random() * photos.length);
+            const photo = photos[randomIndex];
+            showPhotoViewer(photo.userData);
+            
+            // 高亮照片
+            const originalEmissive = photo.material.emissiveIntensity;
+            photo.material.emissiveIntensity = 0.5;
+            setTimeout(() => {
+                photo.material.emissiveIntensity = originalEmissive;
+            }, 1000);
+            
+            showToast('🎲 随机回忆已加载');
+        }
+        
+        // 改变氛围
+        function changeMood() {
+            currentMood = (currentMood + 1) % config.moods.length;
+            const mood = config.moods[currentMood];
+            
+            // 改变背景
+            const canvas = document.getElementById('stars-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const gradient = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, 0,
+                canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height)
+            );
+            
+            mood.colors.forEach((color, index) => {
+                gradient.addColorStop(index / (mood.colors.length - 1), color);
+            });
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 重新绘制星星
+            createStarField();
+            
+            // 改变光源颜色
+            lights.forEach((light, index) => {
+                if (index > 0) {
+                    const colorIndex = (currentMood + index - 1) % mood.colors.length;
+                    light.color.set(mood.colors[colorIndex]);
+                }
+            });
+            
+            showToast(`🎨 氛围切换：${mood.name} - ${mood.description}`);
+        }
+        
+        // 切换灯光
+        function toggleLights() {
+            lights.forEach(light => {
+                light.visible = !light.visible;
+            });
+            
+            const btn = document.getElementById('btn-light');
+            btn.classList.toggle('active');
+            
+            showToast(lights[0].visible ? '💫 星光已点亮' : '💫 星光已熄灭');
+        }
+        
+        // 切换心跳模式
+        function toggleHeartbeat() {
+            isHeartbeatMode = !isHeartbeatMode;
+            const btn = document.getElementById('btn-heartbeat');
+            btn.classList.toggle('active');
+            
+            if (isHeartbeatMode) {
+                document.getElementById('heartbeat-bg').classList.add('active');
+                showToast('💕 心跳同步已开启 - 感受我的心跳');
+            } else {
+                document.getElementById('heartbeat-bg').classList.remove('active');
+                showToast('💕 心跳同步已关闭');
+                
+                // 重置照片发光
+                photos.forEach(photo => {
+                    photo.material.emissiveIntensity = EnterpriseConfig.materials.emissiveIntensity;
+                });
+            }
+        }
+        
+        // 打开定制器
+        function openCustomizer() {
+            showToast('💎 永恒之心定制器即将开放，敬请期待！');
+        }
+        
+        // 上传照片
+        function uploadPhoto() {
+            showToast('📸 照片上传功能即将开放，敬请期待！');
+        }
+        
+        // 显示提示
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(30px);
+                color: white;
+                padding: 25px 40px;
+                border-radius: 25px;
+                font-size: 18px;
+                z-index: 1000;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 15px 50px rgba(155, 181, 255, 0.3);
+                animation: toastFade 3.5s ease-in-out forwards;
+                font-family: 'Noto Serif SC', serif;
+                text-align: center;
+                max-width: 80%;
+                font-weight: 400;
+                letter-spacing: 1px;
+            `;
+            toast.textContent = message;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes toastFade {
+                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+                    85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+                if (style.parentNode) style.parentNode.removeChild(style);
+            }, 3500);
+        }
+        
+        // 初始化
+        function init() {
+            createStarField();
+            initScene();
+            initEvents();
+            updateStats();
+            
+            // 隐藏加载界面
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+            }, 3000);
+            
+            // 显示手势提示
+            setTimeout(() => {
+                const hint = document.getElementById('gesture-hint');
+                hint.style.display = 'block';
+                setTimeout(() => {
+                    hint.style.display = 'none';
+                }, 6000);
+            }, 4000);
+            
+            // 轮换加载引言
+            let quoteIndex = 0;
+            setInterval(() => {
+                if (document.getElementById('loading-screen').style.display !== 'none') {
+                    document.getElementById('loading-quote').textContent = loadingQuotes[quoteIndex];
+                    quoteIndex = (quoteIndex + 1) % loadingQuotes.length;
+                }
+            }, 4000);
+        }
+        
+        // 配置
+        const config = {
+            radius: EnterpriseConfig.scene.radius,
+            particleCount: EnterpriseConfig.scene.particleCount,
+            imageSize: EnterpriseConfig.scene.imageSize,
+            autoRotateSpeed: EnterpriseConfig.scene.autoRotateSpeed,
+            startDate: EnterpriseConfig.scene.startDate,
+            photoCount: EnterpriseConfig.scene.photoCount,
+            emojis: ['💫', '⭐', '✨', '🌟', '🌠', '🌌', '🌙', '☄️', '🚀', '🛸', '🌍', '🪐', '💖', '💕', '💝', '💘', '🌸', '🌺', '🌷', '🌹', '🦋', '🌈', '✨'],
+            moods: [
+                { name: '永恒蓝', colors: ['#000428', '#004e92'], description: '深邃如你的眼眸，永恒不变' },
+                { name: '星云紫', colors: ['#1a1a2e', '#16213e', '#0f3460', '#533483'], description: '梦幻如你的笑容，神秘迷人' },
+                { name: '极光绿', colors: ['#0f0c29', '#302b63', '#24243e', '#0f9b0f'], description: '生机如你的陪伴，活力无限' },
+                { name: '玫瑰金', colors: ['#200122', '#6f0000', '#dc004e', '#ff6b9d'], description: '温暖如你的拥抱，甜蜜醉人' },
+                { name: '晨曦粉', colors: ['#ffafbd', '#ffc3a0', '#ff8a80', '#ffab91'], description: '温柔如你的细语，沁人心脾' },
+                { name: '星空银', colors: ['#0f0c29', '#302b63', '#24243e', '#c0c0c0'], description: '璀璨如你的未来，闪闪发光' }
+            ],
+            captions: [
+                "初见时，星辰初绽，万物失色 ✨",
+                "你的眼眸，是宇宙最亮的星，照亮我的世界 👀",
+                "第一次牵手，触电般的感觉，心跳漏了一拍 ⚡",
+                "一起看日落，时光静止，只有你我 🌅",
+                "你做的早餐，是爱的味道，温暖我的心 🍳",
+                "雨天的伞下，是我们的小世界，温馨甜蜜 ☔",
+                "深夜的电话，聊到黎明，有说不完的话 📱",
+                "第一次旅行，探索未知的世界，留下我们的足迹 ✈️",
+                "生日惊喜，你比蛋糕还甜，是我最好的礼物 🎂",
+                "情人节的玫瑰，代表我的心，永远爱你 🌹",
+                "公园散步，落叶见证我们的脚步，岁月静好 🍂",
+                "海边的誓言，被海浪听见，天地为证 🌊",
+                "一起做饭，厨房里的舞蹈，幸福满满 👨‍🍳",
+                "游乐园的笑声，是最美的音乐，回荡在心间 🎠",
+                "看展览，艺术因你而生动，生活因你而精彩 🎨",
+                "山顶的星空，不及你眼中的光芒，你是我的宇宙 🏔️",
+                "一起学习，知识因你而有趣，成长因你而有意义 📚",
+                "宅在家的周末，是最幸福的时光，有你就足够 🏠",
+                "深夜看星星，每一颗都是你的名字，闪闪发光 ⭐",
+                "早安的吻，开启美好的一天，你是我的阳光 💋",
+                "一起运动，汗水也甜蜜，健康与你同行 🏃",
+                "逛超市，平凡的日子因你而特别，处处是惊喜 🛒",
+                "等你下班，是最温柔的守候，心与你同在 ⏰",
+                "一起看演唱会，歌声里有我们的故事，青春无悔 🎤",
+                "喝奶茶的午后，甜在舌尖暖在心，幸福如此简单 🧋",
+                "拍照的你，是我最美的风景，定格永恒瞬间 📷",
+                "牵手走过的街，每一步都是诗，写满爱意 🤝",
+                "一起看日出，新的一天因你而美好，希望满满 🌄",
+                "雪天的温暖，来自你的拥抱，融化整个冬天 ❄️",
+                "你的笑容，是我最大的幸福，治愈一切 😊",
+                "樱花树下，花瓣如雪般飘落，浪漫至极 🌸",
+                "图书馆的午后，书香与你的爱，最美的时光 📖",
+                "第一次做蛋糕，甜到心里，爱意满满 🍰",
+                "看烟花，像流星划过夜空，绚烂短暂 🎆",
+                "摩天轮的最高点，我们的爱也到达顶点，永恒不变 🎡",
+                "吃火锅，辣在嘴里暖在心里，热辣爱情 🍲",
+                "唱K的夜晚，你是我的唯一听众，歌声传情 🎤",
+                "看日出，新的一天因你而美好，充满希望 🌅",
+                "逛夜市，人间烟火因你而温暖，生活有味 🏮",
+                "一起画画，色彩因你而鲜艳，世界多彩 🎨",
+                "做手工，用心编织我们的未来，一针一线都是爱 ✂️",
+                "看相册回忆，每一张都是珍宝，岁月如歌 📷",
+                "一起种花，爱情如花般绽放，生生不息 🌱",
+                "看月亮，它见证了我们的爱情，阴晴圆缺 🌙",
+                "吃冰淇淋，甜蜜在舌尖融化，清凉一夏 🍦",
+                "放风筝，让梦想飞得更高，自由翱翔 🪁",
+                "骑单车，风吹过的都是快乐，青春飞扬 🚴",
+                "看展览，艺术因你而生动，审美提升 🖼️",
+                "写情书，字字句句都是真心，纸短情长 💌",
+                "一起做瑜伽，身心都与你同步，和谐统一 🧘",
+                "看流星许愿，愿与你永远在一起，愿望成真 💫",
+                "许下永恒的愿望，爱你到永远，不离不弃 🙏",
+                "我们的宇宙，因爱而永恒，星辰为证 💑",
+                "时光流转，爱你如初，永不改变 ⏳",
+                "在时间的尽头，我依然爱你，至死不渝 💖",
+                "你是我的永恒之心，跳动在我生命里 💗"
+            ]
+        };
+        
+        // 启动
+        init();
+    </script>
+</body>
+</html>
