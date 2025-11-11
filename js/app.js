@@ -718,7 +718,7 @@ class EternalHeartApp {
     }
     
     /**
-     * 随机视角 - 查看随机照片
+     * 随机视角 - 查看随机照片（增强版：相机移动+信息卡）
      */
     randomView() {
         console.log('[EternalHeartApp] 随机视角...');
@@ -734,9 +734,128 @@ class EternalHeartApp {
         // 选中照片（触发高亮动画）
         this.managers.photo.selectPhoto(randomPhoto.id);
         
-        // 显示提示
+        // 移动相机到照片前方
+        this.focusOnPhoto(randomPhoto);
+        
+        // 显示照片信息卡
+        this.showPhotoInfoCard(randomPhoto);
+        
+        // 显示通知
         const title = randomPhoto.metadata?.title || `照片 ${randomPhoto.index + 1}`;
         this.showNotification(`随机查看：${title} ✨`);
+    }
+    
+    /**
+     * 聚焦到照片（相机移动）
+     */
+    focusOnPhoto(photo) {
+        if (!photo || !photo.mesh) return;
+        
+        const camera = this.managers.render.getCamera();
+        if (!camera) return;
+        
+        // 计算相机目标位置（在照片前方）
+        const photoPosition = photo.mesh.position;
+        const direction = new THREE.Vector3().copy(photoPosition).normalize();
+        const distance = 400; // 距离照片的距离
+        const targetPosition = direction.multiplyScalar(distance);
+        
+        // 使用 TWEEN 平滑移动相机
+        if (window.TWEEN) {
+            new TWEEN.Tween(camera.position)
+                .to({
+                    x: targetPosition.x,
+                    y: targetPosition.y,
+                    z: targetPosition.z
+                }, 1500) // 1.5秒动画
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .onUpdate(() => {
+                    // 让相机始终看向照片
+                    camera.lookAt(photoPosition);
+                })
+                .start();
+        }
+    }
+    
+    /**
+     * 显示照片信息卡
+     */
+    showPhotoInfoCard(photo) {
+        if (!photo || !photo.metadata) return;
+        
+        // 移除已有的信息卡
+        const existingCard = document.getElementById('photo-info-card');
+        if (existingCard) {
+            existingCard.remove();
+        }
+        
+        // 创建信息卡
+        const card = document.createElement('div');
+        card.id = 'photo-info-card';
+        card.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 400px;
+            color: var(--text-color);
+            font-family: 'Noto Sans SC', sans-serif;
+            z-index: 10000;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 40px var(--shadow-color);
+            animation: fadeInScale 0.4s ease-out;
+            text-align: center;
+        `;
+        
+        // 格式化日期
+        const date = photo.metadata.createdAt ? 
+            new Date(photo.metadata.createdAt).toLocaleDateString('zh-CN') : 
+            '未知日期';
+        
+        card.innerHTML = `
+            <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
+            <h3 style="margin: 0 0 15px 0; color: var(--primary-color); font-size: 24px;">
+                ${photo.metadata.title || '未命名照片'}
+            </h3>
+            <p style="margin: 0 0 20px 0; color: var(--text-secondary); font-size: 16px; line-height: 1.5;">
+                ${photo.metadata.description || '这是一张珍贵的回忆'}
+            </p>
+            <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-secondary);">
+                <span>📅 ${date}</span>
+                <span>#${photo.index + 1}</span>
+            </div>
+        `;
+        
+        // 添加动画样式
+        if (!document.getElementById('photo-card-styles')) {
+            const style = document.createElement('style');
+            style.id = 'photo-card-styles';
+            style.textContent = `
+                @keyframes fadeInScale {
+                    from { 
+                        opacity: 0; 
+                        transform: translate(-50%, -50%) scale(0.8);
+                    }
+                    to { 
+                        opacity: 1; 
+                        transform: translate(-50%, -50%) scale(1);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(card);
+        
+        // 5秒后自动隐藏
+        setTimeout(() => {
+            card.style.animation = 'fadeInScale 0.4s ease-out reverse';
+            setTimeout(() => card.remove(), 400);
+        }, 5000);
     }
     
     /**
