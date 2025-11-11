@@ -11,6 +11,8 @@ import { PhotoManager } from './managers/PhotoManager.js';
 import { ParticleManager } from './managers/ParticleManager.js';
 import { PerformanceMonitor } from './utils/PerformanceMonitor.js';
 import EffectsManager from './effects/EffectsManager.js';
+import CinematicCameraSystem from './effects/CinematicCameraSystem.js';
+import StatsDashboard from './ui/StatsDashboard.js';
 
 class EternalHeartApp {
     constructor(containerId = 'canvas-container') {
@@ -69,6 +71,12 @@ class EternalHeartApp {
             
             // 初始化特效管理器
             await this.initEffectsManager();
+            
+            // 初始化电影级相机系统
+            this.initCinematicCamera();
+            
+            // 初始化统计仪表盘
+            this.initStatsDashboard();
             
             // 设置UI
             this.setupUI();
@@ -796,10 +804,10 @@ class EternalHeartApp {
     }
     
     /**
-     * 随机视角 - 查看随机照片（增强版：相机移动+信息卡）
+     * 随机视角 - 查看随机照片（电影级体验）
      */
-    randomView() {
-        console.log('[EternalHeartApp] 随机视角...');
+    async randomView() {
+        console.log('[EternalHeartApp] 随机视角（电影级）...');
         
         const randomPhoto = this.managers.photo.getRandomPhoto();
         if (!randomPhoto) {
@@ -809,18 +817,28 @@ class EternalHeartApp {
         
         console.log('[EternalHeartApp] 随机选中的照片:', randomPhoto.id);
         
-        // 选中照片（触发高亮动画）
-        this.managers.photo.selectPhoto(randomPhoto.id);
-        
-        // 移动相机到照片前方
-        this.focusOnPhoto(randomPhoto);
-        
-        // 显示照片信息卡
-        this.showPhotoInfoCard(randomPhoto);
-        
-        // 显示通知
-        const title = randomPhoto.metadata?.title || `照片 ${randomPhoto.index + 1}`;
-        this.showNotification(`随机查看：${title} ✨`);
+        // 使用电影级相机系统
+        if (this.cinematicCamera) {
+            await this.cinematicCamera.focusOnTarget(
+                randomPhoto.mesh.position,
+                randomPhoto.metadata?.title || `照片 ${randomPhoto.index + 1}`
+            );
+            
+            // 选中照片（触发高亮动画）
+            this.managers.photo.selectPhoto(randomPhoto.id);
+            
+            // 显示照片信息卡
+            this.showPhotoInfoCard(randomPhoto);
+            
+            // 显示通知
+            const title = randomPhoto.metadata?.title || `照片 ${randomPhoto.index + 1}`;
+            this.showNotification(`随机查看：${title} ✨`);
+        } else {
+            // 回退到普通模式
+            this.managers.photo.selectPhoto(randomPhoto.id);
+            this.focusOnPhoto(randomPhoto);
+            this.showPhotoInfoCard(randomPhoto);
+        }
     }
     
     /**
@@ -1001,6 +1019,25 @@ class EternalHeartApp {
             notification.style.animation = 'slideDown 0.3s ease-out reverse';
             setTimeout(() => notification.remove(), 300);
         }, duration);
+    }
+    
+    /**
+     * 初始化电影级相机系统
+     */
+    initCinematicCamera() {
+        const camera = this.managers.render.getCamera();
+        const scene = this.managers.render.getScene();
+        
+        if (camera && scene) {
+            this.cinematicCamera = new CinematicCameraSystem(camera, scene);
+        }
+    }
+    
+    /**
+     * 初始化统计仪表盘
+     */
+    initStatsDashboard() {
+        this.statsDashboard = new StatsDashboard('stats-dashboard-container');
     }
     
     /**
