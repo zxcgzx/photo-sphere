@@ -754,11 +754,18 @@ class EternalHeartApp {
         const camera = this.managers.render.getCamera();
         if (!camera) return;
         
-        // 计算相机目标位置（在照片前方）
-        const photoPosition = photo.mesh.position;
-        const direction = new THREE.Vector3().copy(photoPosition).normalize();
-        const distance = 400; // 距离照片的距离
-        const targetPosition = direction.multiplyScalar(distance);
+        // 计算相机目标位置（在照片外侧400距离，保持当前相机方向）
+        const photoPosition = photo.mesh.position.clone();
+        
+        // 从球心(0,0,0)到照片的方向
+        const directionFromCenter = photoPosition.clone().normalize();
+        
+        // 目标位置：从球心沿着这个方向，在照片外侧400距离
+        // 这样相机会在照片外面，对着照片和球心
+        const targetPosition = directionFromCenter.multiplyScalar(photoPosition.length() + 400);
+        
+        console.log('[focusOnPhoto] 照片位置:', photoPosition);
+        console.log('[focusOnPhoto] 目标位置:', targetPosition);
         
         // 使用 TWEEN 平滑移动相机
         if (window.TWEEN) {
@@ -770,7 +777,7 @@ class EternalHeartApp {
                 }, 1500) // 1.5秒动画
                 .easing(TWEEN.Easing.Quadratic.InOut)
                 .onUpdate(() => {
-                    // 让相机始终看向照片
+                    // 让相机始终看向照片中心
                     camera.lookAt(photoPosition);
                 })
                 .start();
