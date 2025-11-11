@@ -418,17 +418,37 @@ class EternalHeartApp {
             </div>
             
             <div style="border-top: 1px solid rgba(155, 181, 255, 0.2); padding-top: 15px; margin-bottom: 15px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span>照片总数:</span>
-                    <span id="photo-count">0</span>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span id="photo-count">0</span>
+                        <button id="edit-photo-count" style="background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer;">编辑</button>
+                    </div>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span>当前照片:</span>
                     <span id="current-photo">-</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span>粒子数量:</span>
-                    <span id="particle-count">0</span>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span id="particle-count">0</span>
+                        <button id="edit-particle-count" style="background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer;">编辑</button>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span>甜蜜指数:</span>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span id="sweet-index">95%</span>
+                        <button id="edit-sweet-index" style="background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer;">编辑</button>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span>回忆数量:</span>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span id="memory-count">128</span>
+                        <button id="edit-memory-count" style="background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer;">编辑</button>
+                    </div>
                 </div>
             </div>
             
@@ -448,6 +468,9 @@ class EternalHeartApp {
         
         // 绑定控制事件
         this.bindControlEvents();
+        
+        // 加载自定义统计
+        this.loadCustomStats();
     }
     
     /**
@@ -469,6 +492,61 @@ class EternalHeartApp {
         // 质量选择
         document.getElementById('quality-select').addEventListener('change', (e) => {
             this.managers.render.setQuality(e.target.value);
+        });
+        
+        // 编辑统计信息
+        this.bindEditButtons();
+    }
+    
+    bindEditButtons() {
+        // 照片总数
+        document.getElementById('edit-photo-count')?.addEventListener('click', () => {
+            this.editStatValue('photo-count', '照片总数');
+        });
+        
+        // 粒子数量
+        document.getElementById('edit-particle-count')?.addEventListener('click', () => {
+            this.editStatValue('particle-count', '粒子数量');
+        });
+        
+        // 甜蜜指数
+        document.getElementById('edit-sweet-index')?.addEventListener('click', () => {
+            this.editStatValue('sweet-index', '甜蜜指数');
+        });
+        
+        // 回忆数量
+        document.getElementById('edit-memory-count')?.addEventListener('click', () => {
+            this.editStatValue('memory-count', '回忆数量');
+        });
+    }
+    
+    editStatValue(elementId, label) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const currentValue = element.textContent;
+        const newValue = prompt(`请输入新的 ${label}:`, currentValue);
+        
+        if (newValue !== null && newValue !== currentValue) {
+            element.textContent = newValue;
+            
+            // 保存到本地存储
+            const stats = JSON.parse(localStorage.getItem('customStats') || '{}');
+            stats[elementId] = newValue;
+            localStorage.setItem('customStats', JSON.stringify(stats));
+            
+            this.showNotification(`${label}已更新: ${newValue}`);
+        }
+    }
+    
+    loadCustomStats() {
+        const stats = JSON.parse(localStorage.getItem('customStats') || '{}');
+        
+        Object.entries(stats).forEach(([elementId, value]) => {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = value;
+            }
         });
     }
     
@@ -749,23 +827,24 @@ class EternalHeartApp {
      * 聚焦到照片（相机移动）
      */
     focusOnPhoto(photo) {
-        if (!photo || !photo.mesh) return;
+        if (!photo || !photo.mesh) {
+            console.warn('[focusOnPhoto] 照片或mesh不存在');
+            return;
+        }
         
         const camera = this.managers.render.getCamera();
-        if (!camera) return;
+        if (!camera) {
+            console.warn('[focusOnPhoto] 相机不存在');
+            return;
+        }
         
-        // 计算相机目标位置（在照片外侧400距离）
+        // 简化：直接移动到照片位置的1.5倍距离（在照片外侧）
         const photoPosition = photo.mesh.position.clone();
-        
-        // 从球心(0,0,0)到照片的方向
-        const directionFromCenter = photoPosition.clone().normalize();
-        
-        // 目标位置：从球心沿着这个方向，在照片外侧400距离
-        // 这样相机会在照片外面，对着照片和球心
-        const targetPosition = directionFromCenter.multiplyScalar(photoPosition.length() + 400);
+        const targetPosition = photoPosition.clone().multiplyScalar(1.5);
         
         console.log('[focusOnPhoto] 照片位置:', photoPosition);
         console.log('[focusOnPhoto] 目标位置:', targetPosition);
+        console.log('[focusOnPhoto] 相机当前位置:', camera.position);
         
         // 使用 TWEEN 平滑移动相机
         if (window.TWEEN) {
@@ -781,6 +860,10 @@ class EternalHeartApp {
                     camera.lookAt(0, 0, 0);
                 })
                 .start();
+        } else {
+            // 如果没有 TWEEN，直接设置位置
+            camera.position.copy(targetPosition);
+            camera.lookAt(0, 0, 0);
         }
     }
     
