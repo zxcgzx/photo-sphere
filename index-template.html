@@ -412,76 +412,6 @@
             to { transform: rotate(360deg); }
         }
         
-        /* 控制面板分组 */
-        .control-btn-group {
-            display: flex;
-            gap: 10px;
-        }
-        
-        /* 更多按钮（默认隐藏） */
-        .more-btn {
-            display: none;
-            background: rgba(155, 181, 255, 0.2);
-            border-color: var(--primary-color);
-        }
-        
-        /* 折叠菜单 */
-        .collapse-menu {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 10px;
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 1001;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.3s ease-out;
-        }
-        
-        .collapse-menu.show {
-            display: flex;
-        }
-        
-        .collapse-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-color);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.8rem;
-            min-width: 120px;
-        }
-        
-        .collapse-btn:hover {
-            border-color: var(--primary-color);
-            background: rgba(155, 181, 255, 0.1);
-        }
-        
-        .collapse-btn span:first-child {
-            font-size: 1rem;
-        }
-        
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
         /* 响应式设计 */
         @media (max-width: 768px) {
             .main-title {
@@ -521,31 +451,16 @@
         }
         
         @media (max-width: 480px) {
-            /* 移动端：隐藏次要按钮组，显示更多按钮 */
-            .control-btn-group {
-                display: none;
-            }
-            
-            .more-btn {
-                display: flex;
-            }
-            
             #control-panel {
-                flex-wrap: nowrap;
+                flex-wrap: wrap;
                 gap: 4px;
                 padding: 6px;
-                justify-content: space-around;
             }
             
             .control-btn {
                 padding: 6px 8px;
                 font-size: 0.6rem;
                 min-width: 55px;
-                flex: 1;
-            }
-            
-            .control-btn.primary {
-                flex: 1.5; /* 主要按钮稍大 */
             }
         }
     </style>
@@ -626,64 +541,33 @@
         
         <!-- 控制面板 -->
         <div id="control-panel">
-            <!-- 主要操作（始终显示） -->
-            <button class="control-btn primary" id="btn-rotate">
+            <button class="control-btn" id="btn-rotate">
                 <span>🔄</span>
                 <span>自动旋转</span>
             </button>
-            <button class="control-btn primary" id="btn-random">
-                <span>🎲</span>
-                <span>随机看看</span>
-            </button>
-            <button class="control-btn primary" id="btn-upload">
-                <span>📸</span>
-                <span>上传照片</span>
-            </button>
-            
-            <!-- 次要操作（桌面端显示，移动端折叠） -->
-            <div class="control-btn-group" id="control-btn-group">
-                <button class="control-btn" id="btn-stats">
-                    <span>📊</span>
-                    <span>统计</span>
-                </button>
-                <button class="control-btn" id="btn-mood">
-                    <span>🎨</span>
-                    <span>换个心情</span>
-                </button>
-                <button class="control-btn" id="btn-light">
-                    <span>💡</span>
-                    <span>切换光效</span>
-                </button>
-                <button class="control-btn" id="btn-surprise">
-                    <span>🎉</span>
-                    <span>小惊喜</span>
-                </button>
-            </div>
-            
-            <!-- 更多按钮（移动端显示） -->
-            <button class="control-btn more-btn" id="btn-more">
-                <span>⋮</span>
-                <span>更多</span>
-            </button>
-        </div>
-        
-        <!-- 折叠菜单（移动端） -->
-        <div id="collapse-menu" class="collapse-menu">
-            <button class="collapse-btn" id="btn-stats-collapse">
+            <button class="control-btn" id="btn-stats">
                 <span>📊</span>
                 <span>统计</span>
             </button>
-            <button class="collapse-btn" id="btn-mood-collapse">
+            <button class="control-btn" id="btn-random">
+                <span>🎲</span>
+                <span>随机看看</span>
+            </button>
+            <button class="control-btn" id="btn-mood">
                 <span>🎨</span>
                 <span>换个心情</span>
             </button>
-            <button class="collapse-btn" id="btn-light-collapse">
+            <button class="control-btn" id="btn-light">
                 <span>💡</span>
                 <span>切换光效</span>
             </button>
-            <button class="collapse-btn" id="btn-surprise-collapse">
+            <button class="control-btn" id="btn-surprise">
                 <span>🎉</span>
                 <span>小惊喜</span>
+            </button>
+            <button class="control-btn" id="btn-upload">
+                <span>📸</span>
+                <span>上传照片</span>
             </button>
         </div>
         
@@ -703,45 +587,6 @@
             <div>滑动旋转星球，双指缩放视角</div>
         </div>
     </div>
-    
-    <!-- 上传模态框模板 -->
-    <template id="upload-modal-template">
-        <div id="uploadModal" class="upload-modal">
-            <div class="upload-modal-content">
-                <div class="upload-modal-header">
-                    <h3>📸 添加新照片</h3>
-                    <button class="upload-modal-close">&times;</button>
-                </div>
-                
-                <div class="upload-modal-body">
-                    <div class="upload-drop-zone" id="uploadDropZone">
-                        <div class="upload-icon">☁️</div>
-                        <h4>拖拽照片到这里</h4>
-                        <p>或点击选择文件</p>
-                        <input type="file" id="uploadFileInput" multiple accept="image/*" style="display: none;">
-                        <button class="btn-upload-select">选择文件</button>
-                    </div>
-                    
-                    <div class="upload-preview" id="uploadPreview" style="display: none;">
-                        <h4>待上传照片</h4>
-                        <div class="upload-preview-grid" id="uploadPreviewGrid"></div>
-                    </div>
-                    
-                    <div class="upload-progress" id="uploadProgress" style="display: none;">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="uploadProgressFill"></div>
-                        </div>
-                        <div class="progress-text" id="uploadProgressText">准备上传...</div>
-                    </div>
-                </div>
-                
-                <div class="upload-modal-footer">
-                    <button class="btn btn-secondary" id="uploadCancelBtn">取消</button>
-                    <button class="btn btn-primary" id="uploadStartBtn" disabled>开始上传</button>
-                </div>
-            </div>
-        </div>
-    </template>
     
     <!-- 加载动画 -->
     <div class="loader" id="loader" style="display: none;">

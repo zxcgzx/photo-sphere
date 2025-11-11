@@ -383,4 +383,34 @@ router.get('/search/query',
   }
 );
 
+/**
+ * 获取照片统计信息
+ * GET /api/photos/stats
+ */
+router.get('/stats',
+  async (req, res) => {
+    try {
+      const db = new JsonDatabase();
+      const stats = await db.getStats();
+      
+      res.json({
+        success: true,
+        data: {
+          totalPhotos: stats.totalPhotos || 0,
+          totalUsers: stats.totalUsers || 0,
+          lastUpload: stats.lastUpload || null
+        }
+      });
+      
+    } catch (error) {
+      console.error('获取统计信息失败:', error);
+      res.status(500).json({
+        success: false,
+        message: '获取统计信息失败',
+        error: process.env.NODE_ENV === 'development' ? error.message : '服务器内部错误'
+      });
+    }
+  }
+);
+
 module.exports = router;

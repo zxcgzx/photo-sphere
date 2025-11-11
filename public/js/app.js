@@ -58,14 +58,18 @@ class PhotoSphereApp {
         this.starFieldCache = null;
         this.starFieldCanvas = null;
         
-        // resize 节流定时器
+        // resize 节流（使用 requestAnimationFrame 优化）
         this.resizeTimer = null;
+        this.resizeAnimationFrame = null;
         
         // 特效管理器
         this.effectsManager = null;
         
         // 物理粒子系统
         this.particleSystem = null;
+        
+        // 浮动元素定时器ID（用于防止泄漏）
+        this.floatingElementsIntervalId = null;
         
         // 将实例暴露到全局，供其他模块使用
         window.photoSphereApp = this;
@@ -76,6 +80,12 @@ class PhotoSphereApp {
      */
     async initialize() {
         try {
+            // 如果已初始化，先清理资源（防止重复初始化导致定时器泄漏）
+            if (this.isInitialized) {
+                this.config.log('检测到重复初始化，先清理资源...');
+                this.dispose();
+            }
+            
             this.config.log('初始化我们的小宇宙应用...');
             
             // 验证配置
@@ -171,6 +181,7 @@ class PhotoSphereApp {
             btnMood: document.getElementById('btn-mood'),
             btnLight: document.getElementById('btn-light'),
             btnSurprise: document.getElementById('btn-surprise'),
+            btnMore: document.getElementById('btn-more'),
             
             // 照片查看器
             photoViewer: document.getElementById('photo-viewer'),
@@ -210,7 +221,7 @@ class PhotoSphereApp {
     }
     
     /**
-     * 初始化密码验证
+     * 初始化密码验证（增强版：自动聚焦、错误高亮、禁用按钮）
      */
     initPasswordScreen() {
         // 单词选择按钮
@@ -220,12 +231,23 @@ class PhotoSphereApp {
                 btn.classList.add('selected');
                 this.elements.wordSelected.value = btn.dataset.word;
                 this.checkFormComplete();
+                
+                // 自动聚焦到下一个未填字段
+                this.focusNextEmptyField();
             });
         });
         
-        // 监听输入变化
-        this.elements.monthSelect?.addEventListener('change', () => this.checkFormComplete());
-        this.elements.nicknameInput?.addEventListener('input', () => this.checkFormComplete());
+        // 监听输入变化（带错误状态清除）
+        this.elements.monthSelect?.addEventListener('change', () => {
+            this.clearFieldError(this.elements.monthSelect);
+            this.checkFormComplete();
+            this.focusNextEmptyField();
+        });
+        
+        this.elements.nicknameInput?.addEventListener('input', () => {
+            this.clearFieldError(this.elements.nicknameInput);
+            this.checkFormComplete();
+        });
         
         // 验证按钮
         this.elements.enterBtn?.addEventListener('click', () => this.verifyPassword());
@@ -236,6 +258,45 @@ class PhotoSphereApp {
                 this.verifyPassword();
             }
         });
+        
+        // 自动聚焦第一个字段
+        setTimeout(() => {
+            this.elements.monthSelect?.focus();
+        }, 500);
+    }
+    
+    /**
+     * 自动聚焦到下一个未填字段
+     */
+    focusNextEmptyField() {
+        if (!this.elements.monthSelect.value) {
+            this.elements.monthSelect.focus();
+        } else if (!this.elements.nicknameInput.value.trim()) {
+            this.elements.nicknameInput.focus();
+        } else if (!this.elements.wordSelected.value) {
+            // 如果单词未选择，聚焦到第一个单词按钮
+            this.elements.wordBtns[0]?.focus();
+        }
+    }
+    
+    /**
+     * 清除字段错误状态
+     */
+    clearFieldError(field) {
+        if (field) {
+            field.style.borderColor = '';
+            field.style.boxShadow = '';
+        }
+    }
+    
+    /**
+     * 设置字段错误状态
+     */
+    setFieldError(field) {
+        if (field) {
+            field.style.borderColor = '#ff6b6b';
+            field.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.5)';
+        }
     }
     
     /**
@@ -255,7 +316,7 @@ class PhotoSphereApp {
     }
     
     /**
-     * 验证密码
+     * 验证密码（增强版：错误高亮、智能提示）
      */
     async verifyPassword() {
         const month = this.elements.monthSelect?.value;
@@ -281,8 +342,10 @@ class PhotoSphereApp {
                 setTimeout(() => {
                     const event = new CustomEvent('passwordSuccess');
                     this.elements.passwordScreen.dispatchEvent(event);
-                }, 2000);
+                }, 1500); // 缩短等待时间
             } else {
+                // 智能错误高亮：根据错误类型高亮对应字段
+                this.highlightErrorFields(result.failedFields || []);
                 this.showErrorAnimation(result.message || '答案不正确，请重试');
             }
             
@@ -291,10 +354,45 @@ class PhotoSphereApp {
             this.showErrorAnimation('验证过程出现错误，请重试');
         } finally {
             // 重新启用按钮
-            if (this.elements.enterBtn) {
-                this.elements.enterBtn.disabled = false;
-                this.elements.enterBtn.innerHTML = '<span>✨ 进入我们的小宇宙 ✨</span>';
+            setTimeout(() => {
+                if (this.elements.enterBtn) {
+                    this.elements.enterBtn.disabled = false;
+                    this.elements.enterBtn.innerHTML = '<span>✨ 进入我们的小宇宙 ✨</span>';
+                }
+            }, 2000);
+        }
+    }
+    
+    /**
+     * 高亮错误字段
+     */
+    highlightErrorFields(failedFields) {
+        // 清除所有错误状态
+        this.clearFieldError(this.elements.monthSelect);
+        this.clearFieldError(this.elements.nicknameInput);
+        
+        // 高亮错误字段
+        failedFields.forEach(field => {
+            if (field === 'month') {
+                this.setFieldError(this.elements.monthSelect);
+            } else if (field === 'nickname') {
+                this.setFieldError(this.elements.nicknameInput);
+            } else if (field === 'word') {
+                // 单词选择错误（高亮所有单词按钮）
+                this.elements.wordBtns.forEach(btn => {
+                    btn.style.borderColor = '#ff6b6b';
+                    btn.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.5)';
+                });
             }
+        });
+        
+        // 自动聚焦到第一个错误字段
+        if (failedFields.includes('month')) {
+            this.elements.monthSelect.focus();
+        } else if (failedFields.includes('nickname')) {
+            this.elements.nicknameInput.focus();
+        } else if (failedFields.includes('word')) {
+            this.elements.wordBtns[0]?.focus();
         }
     }
     
@@ -317,7 +415,7 @@ class PhotoSphereApp {
     }
     
     /**
-     * 错误动画
+     * 错误动画（增强版：缩短显示时间，添加查看提示按钮）
      */
     showErrorAnimation(message = '答案不对哦，再想想～') {
         if (!this.elements.enterBtn) return;
@@ -331,11 +429,110 @@ class PhotoSphereApp {
             container.style.animation = 'shake 0.5s ease-in-out';
             
             setTimeout(() => {
+                // 恢复按钮状态
                 this.elements.enterBtn.innerHTML = '<span>✨ 进入我们的小宇宙 ✨</span>';
                 this.elements.enterBtn.style.background = 'linear-gradient(135deg, #667eea, #764ba2, #f093fb)';
                 container.style.animation = '';
-            }, 3000); // 增加显示时间以便用户看清错误信息
+                
+                // 显示查看提示按钮
+                this.showHintButton();
+            }, 2000); // 缩短显示时间到2秒
         }
+    }
+    
+    /**
+     * 显示查看提示按钮
+     */
+    showHintButton() {
+        // 检查是否已存在提示按钮
+        let hintBtn = document.getElementById('hint-btn');
+        if (hintBtn) return;
+        
+        // 创建提示按钮
+        hintBtn = document.createElement('button');
+        hintBtn.id = 'hint-btn';
+        hintBtn.className = 'hint-btn';
+        hintBtn.innerHTML = '<span>💡 查看提示</span>';
+        hintBtn.style.cssText = `
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            color: #ffc107;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        `;
+        
+        hintBtn.addEventListener('click', () => {
+            this.showHintModal();
+            hintBtn.remove();
+        });
+        
+        hintBtn.addEventListener('mouseenter', () => {
+            hintBtn.style.background = 'rgba(255, 193, 7, 0.3)';
+        });
+        
+        hintBtn.addEventListener('mouseleave', () => {
+            hintBtn.style.background = 'rgba(255, 193, 7, 0.2)';
+        });
+        
+        const form = document.getElementById('password-form');
+        form?.appendChild(hintBtn);
+    }
+    
+    /**
+     * 显示提示模态框
+     */
+    showHintModal() {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+        `;
+        
+        modal.innerHTML = `
+            <div style="
+                background: var(--panel-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                padding: 30px;
+                max-width: 400px;
+                text-align: center;
+                color: var(--text-color);
+            ">
+                <h3 style="margin-bottom: 20px; color: var(--primary-color);">💡 密码提示</h3>
+                <div style="text-align: left; line-height: 1.8; margin-bottom: 20px;">
+                    <p>• <strong>月份：</strong>你们第一次见面的月份（数字，如1表示一月）</p>
+                    <p>• <strong>昵称：</strong>你们之间的专属昵称</p>
+                    <p>• <strong>心动词：</strong>从四个选项中选择</p>
+                </div>
+                <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 20px;">
+                    默认答案：月份=1，昵称=宝宝，心动词=宇宙
+                </p>
+                <button class="btn btn-primary" onclick="this.closest('.hint-modal').remove()">
+                    知道了
+                </button>
+            </div>
+        `;
+        
+        modal.className = 'hint-modal';
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        document.body.appendChild(modal);
     }
     
     /**
@@ -473,10 +670,17 @@ class PhotoSphereApp {
         // 创建上传模态框
         this.uploadModal = new UploadModal(this.config);
         
-        // 检查是否已存在上传按钮，避免重复
+        // 检查是否已存在上传按钮，避免重复创建和重复绑定
         const existingUploadBtn = document.getElementById('btn-upload');
+        
         if (existingUploadBtn) {
-            // 使用现有的上传按钮
+            // 检查是否已绑定事件（防止重复调用initializeUpload）
+            if (existingUploadBtn.dataset.uploadBound === 'true') {
+                this.config.log('上传按钮事件已绑定，跳过');
+                return;
+            }
+            
+            // 使用现有的上传按钮，绑定事件
             existingUploadBtn.addEventListener('click', () => {
                 if (this.uploadModal) {
                     this.uploadModal.open();
@@ -484,12 +688,18 @@ class PhotoSphereApp {
                     window.open('upload.html', '_blank');
                 }
             });
+            
+            // 标记已绑定
+            existingUploadBtn.dataset.uploadBound = 'true';
+            this.config.log('使用现有的上传按钮并绑定事件');
         } else if (this.elements.controlPanel) {
             // 在控制面板添加新的上传按钮
             const uploadBtn = document.createElement('button');
             uploadBtn.className = 'control-btn';
             uploadBtn.id = 'btn-upload';
             uploadBtn.innerHTML = '<span>📤</span><span>上传照片</span>';
+            uploadBtn.dataset.uploadBound = 'true'; // 立即标记
+            
             uploadBtn.addEventListener('click', () => {
                 if (this.uploadModal) {
                     this.uploadModal.open();
@@ -497,7 +707,9 @@ class PhotoSphereApp {
                     window.open('upload.html', '_blank');
                 }
             });
+            
             this.elements.controlPanel.appendChild(uploadBtn);
+            this.config.log('创建新的上传按钮');
         }
     }
     
@@ -560,6 +772,42 @@ class PhotoSphereApp {
         this.elements.btnMood?.addEventListener('click', () => this.changeMood());
         this.elements.btnLight?.addEventListener('click', () => this.toggleLights());
         this.elements.btnSurprise?.addEventListener('click', () => this.surprise());
+        
+        // 折叠菜单按钮（移动端）
+        this.elements.btnMore?.addEventListener('click', () => this.toggleCollapseMenu());
+        
+        // 折叠菜单中的按钮
+        document.getElementById('btn-stats-collapse')?.addEventListener('click', () => {
+            this.toggleStats();
+            this.hideCollapseMenu();
+        });
+        
+        document.getElementById('btn-mood-collapse')?.addEventListener('click', () => {
+            this.changeMood();
+            this.hideCollapseMenu();
+        });
+        
+        document.getElementById('btn-light-collapse')?.addEventListener('click', () => {
+            this.toggleLights();
+            this.hideCollapseMenu();
+        });
+        
+        document.getElementById('btn-surprise-collapse')?.addEventListener('click', () => {
+            this.surprise();
+            this.hideCollapseMenu();
+        });
+        
+        // 点击外部关闭折叠菜单
+        document.addEventListener('click', (e) => {
+            const collapseMenu = document.getElementById('collapse-menu');
+            const moreBtn = document.getElementById('btn-more');
+            
+            if (collapseMenu && moreBtn && 
+                !collapseMenu.contains(e.target) && 
+                !moreBtn.contains(e.target)) {
+                this.hideCollapseMenu();
+            }
+        });
         
         // 查看器关闭
         this.elements.viewerClose?.addEventListener('click', () => this.closeViewer());
@@ -670,16 +918,16 @@ class PhotoSphereApp {
     }
     
     /**
-     * 窗口大小调整（带节流优化）
+     * 窗口大小调整（使用 requestAnimationFrame 优化，与渲染循环同步）
      */
     onWindowResize() {
-        // 清除之前的定时器
-        if (this.resizeTimer) {
-            clearTimeout(this.resizeTimer);
+        // 如果已经安排了动画帧，先取消（防止多次触发）
+        if (this.resizeAnimationFrame) {
+            cancelAnimationFrame(this.resizeAnimationFrame);
         }
         
-        // 延迟执行 resize 操作
-        this.resizeTimer = setTimeout(() => {
+        // 使用 requestAnimationFrame 确保与渲染周期同步，避免不必要的重绘
+        this.resizeAnimationFrame = requestAnimationFrame(() => {
             this.windowHalfX = window.innerWidth / 2;
             this.windowHalfY = window.innerHeight / 2;
             
@@ -694,7 +942,12 @@ class PhotoSphereApp {
                 canvas.height = window.innerHeight;
                 this.createStarField();
             }
-        }, 250); // 250ms 节流
+            
+            this.config.log('窗口大小已调整:', window.innerWidth, 'x', window.innerHeight);
+            
+            // 清理动画帧引用
+            this.resizeAnimationFrame = null;
+        });
     }
     
     /**
@@ -766,30 +1019,197 @@ class PhotoSphereApp {
     }
     
     /**
-     * 随机视角
+     * 随机视角（增强版：居中显示+信息卡）
      */
     randomView() {
         const randomPhoto = this.photoManager?.getRandomPhoto();
         if (!randomPhoto || !this.sceneManager?.camera) return;
         
-        // 计算相机位置
+        const photoData = randomPhoto.userData.photoData;
+        if (!photoData) return;
+        
+        // 计算相机位置（对准照片）
         const direction = new THREE.Vector3();
         direction.copy(randomPhoto.position).normalize();
-        const targetPosition = direction.multiplyScalar(500);
+        const distance = 400; // 距离照片的距离
+        const targetPosition = direction.multiplyScalar(distance);
         
         if (window.TWEEN) {
+            // 移动相机到目标位置
             new TWEEN.Tween(this.sceneManager.camera.position)
                 .to(targetPosition, this.config.animations.cameraMoveDuration)
                 .easing(TWEEN.Easing.Quadratic.InOut)
+                .onUpdate(() => {
+                    // 让相机始终看向照片中心
+                    this.sceneManager.camera.lookAt(randomPhoto.position);
+                })
+                .onComplete(() => {
+                    // 显示照片信息卡
+                    this.showPhotoInfoCard(photoData, randomPhoto);
+                })
                 .start();
         }
         
         // 高亮照片
         this.photoManager.highlightPhoto(randomPhoto);
+        
+        // 显示提示
+        this.showToast(`随机查看：${photoData.title || '未命名照片'} ✨`);
     }
     
     /**
-     * 切换心情主题
+     * 显示照片信息卡
+     */
+    showPhotoInfoCard(photoData, photoMesh) {
+        // 移除已存在的信息卡
+        const existingCard = document.getElementById('photo-info-card');
+        if (existingCard) {
+            existingCard.remove();
+        }
+        
+        // 创建信息卡
+        const infoCard = document.createElement('div');
+        infoCard.id = 'photo-info-card';
+        infoCard.className = 'photo-info-card';
+        
+        // 格式化日期
+        const uploadDate = photoData.uploaded_at ? new Date(photoData.uploaded_at).toLocaleDateString('zh-CN') : '未知日期';
+        const caption = photoData.caption || photoData.description || '一张珍贵的回忆';
+        
+        infoCard.innerHTML = `
+            <div class="photo-info-header">
+                <h4>${photoData.title || '未命名照片'}</h4>
+                <button class="photo-info-close" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+            <div class="photo-info-body">
+                <p class="photo-info-date">📅 ${uploadDate}</p>
+                <p class="photo-info-caption">${caption}</p>
+            </div>
+            <div class="photo-info-actions">
+                <button class="btn btn-primary" onclick="window.photoSphereApp.viewPhoto('${photoData.id || ''}')">
+                    查看大图
+                </button>
+            </div>
+        `;
+        
+        // 设置样式
+        infoCard.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 300px;
+            max-width: 400px;
+            z-index: 1500;
+            backdrop-filter: blur(10px);
+            color: var(--text-color);
+            font-family: 'Noto Sans SC', sans-serif;
+            animation: fadeInScale 0.3s ease-out;
+        `;
+        
+        // 添加动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInScale {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.8);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+            }
+            
+            .photo-info-card .photo-info-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+                border-bottom: 1px solid var(--border-color);
+                padding-bottom: 10px;
+            }
+            
+            .photo-info-card .photo-info-header h4 {
+                margin: 0;
+                color: var(--primary-color);
+                font-size: 1.2rem;
+            }
+            
+            .photo-info-card .photo-info-close {
+                background: none;
+                border: none;
+                color: var(--text-color);
+                font-size: 1.5rem;
+                cursor: pointer;
+                opacity: 0.7;
+                transition: opacity 0.3s ease;
+            }
+            
+            .photo-info-card .photo-info-close:hover {
+                opacity: 1;
+            }
+            
+            .photo-info-card .photo-info-body {
+                margin-bottom: 15px;
+            }
+            
+            .photo-info-card .photo-info-date {
+                margin: 0 0 10px 0;
+                font-size: 0.9rem;
+                opacity: 0.8;
+            }
+            
+            .photo-info-card .photo-info-caption {
+                margin: 0;
+                line-height: 1.5;
+                font-size: 1rem;
+            }
+            
+            .photo-info-card .photo-info-actions {
+                text-align: center;
+            }
+            
+            .photo-info-card .btn {
+                padding: 8px 16px;
+                background: var(--primary-color);
+                color: #000;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: all 0.3s ease;
+            }
+            
+            .photo-info-card .btn:hover {
+                background: var(--secondary-color);
+                transform: translateY(-1px);
+            }
+        `;
+        
+        if (!document.getElementById('photo-info-card-styles')) {
+            style.id = 'photo-info-card-styles';
+            document.head.appendChild(style);
+        }
+        
+        // 添加到页面
+        document.body.appendChild(infoCard);
+        
+        // 3秒后自动隐藏
+        setTimeout(() => {
+            if (infoCard.parentNode) {
+                infoCard.style.animation = 'fadeInScale 0.3s ease-out reverse';
+                setTimeout(() => infoCard.remove(), 300);
+            }
+        }, 3000);
+    }
+    
+    /**
+     * 切换心情主题（增强版：控制面板、按钮、星云、光源）
      */
     changeMood() {
         this.currentMood = (this.currentMood + 1) % this.config.themes.moods.length;
@@ -798,10 +1218,149 @@ class PhotoSphereApp {
         // 更新星空背景
         this.updateStarFieldMood(mood);
         
+        // 更新控制面板样式
+        this.updateControlPanelMood(mood);
+        
+        // 更新按钮样式
+        this.updateButtonMood(mood);
+        
+        // 更新星云效果
+        this.updateNebulaMood(mood);
+        
+        // 更新光源颜色
+        this.updateLightingMood(mood);
+        
         // 保存主题设置
         this.config.saveTheme(mood.name);
         
         this.showToast(`切换到${mood.name}主题 🎨`);
+    }
+    
+    /**
+     * 更新控制面板主题
+     */
+    updateControlPanelMood(mood) {
+        if (!this.elements.controlPanel) return;
+        
+        // 更新控制面板背景色
+        const panelBg = this.hexToRgba(mood.colors[0], 0.9);
+        this.elements.controlPanel.style.background = panelBg;
+        
+        // 更新边框颜色
+        const borderColor = this.hexToRgba(mood.colors[1] || mood.colors[0], 0.3);
+        this.elements.controlPanel.style.borderColor = borderColor;
+        
+        // 更新所有按钮的悬停效果
+        const buttons = this.elements.controlPanel.querySelectorAll('.control-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                btn.style.borderColor = mood.colors[0];
+                btn.style.background = this.hexToRgba(mood.colors[0], 0.1);
+            });
+            
+            btn.addEventListener('mouseleave', () => {
+                btn.style.borderColor = borderColor;
+                btn.style.background = 'rgba(0, 0, 0, 0.3)';
+            });
+        });
+    }
+    
+    /**
+     * 更新按钮主题
+     */
+    updateButtonMood(mood) {
+        if (!this.elements.enterBtn) return;
+        
+        // 更新主要按钮的渐变背景
+        const btn = this.elements.enterBtn;
+        const gradient = `linear-gradient(135deg, ${mood.colors[0]}, ${mood.colors[1] || mood.colors[0]})`;
+        btn.style.background = gradient;
+        
+        // 更新按钮发光效果
+        btn.style.boxShadow = `0 0 20px ${this.hexToRgba(mood.colors[0], 0.5)}`;
+    }
+    
+    /**
+     * 更新星云效果
+     */
+    updateNebulaMood(mood) {
+        if (!this.sceneManager?.scene) return;
+        
+        // 移除旧的星云
+        const oldNebula = this.sceneManager.scene.getObjectByName('nebula');
+        if (oldNebula) {
+            this.sceneManager.scene.remove(oldNebula);
+        }
+        
+        // 创建新的星云（使用主题颜色）
+        const nebulaGeometry = new THREE.SphereGeometry(800, 32, 32);
+        const nebulaMaterial = new THREE.MeshBasicMaterial({
+            color: new THREE.Color(mood.colors[0]),
+            transparent: true,
+            opacity: 0.1,
+            side: THREE.BackSide
+        });
+        
+        const nebula = new THREE.Mesh(nebulaGeometry, nebulaMaterial);
+        nebula.name = 'nebula';
+        this.sceneManager.scene.add(nebula);
+        
+        // 添加旋转动画
+        if (window.TWEEN) {
+            const rotationTween = new TWEEN.Tween(nebula.rotation)
+                .to({ y: Math.PI * 2 }, 60000) // 60秒转一圈
+                .easing(TWEEN.Easing.Linear.None)
+                .repeat(Infinity)
+                .start();
+        }
+    }
+    
+    /**
+     * 更新光源颜色
+     */
+    updateLightingMood(mood) {
+        if (!this.sceneManager?.scene) return;
+        
+        // 更新环境光
+        const ambientLight = this.sceneManager.scene.getObjectByName('ambientLight');
+        if (ambientLight) {
+            ambientLight.color = new THREE.Color(mood.colors[0]);
+        }
+        
+        // 更新点光源
+        const pointLights = this.sceneManager.scene.children.filter(child => 
+            child.type === 'PointLight' && child.name !== 'ambientLight'
+        );
+        
+        pointLights.forEach((light, index) => {
+            const colorIndex = index % mood.colors.length;
+            light.color = new THREE.Color(mood.colors[colorIndex]);
+            
+            // 添加颜色动画
+            if (window.TWEEN) {
+                const originalIntensity = light.intensity;
+                new TWEEN.Tween(light)
+                    .to({ intensity: originalIntensity * 1.5 }, 500)
+                    .easing(TWEEN.Easing.Quadratic.Out)
+                    .onComplete(() => {
+                        new TWEEN.Tween(light)
+                            .to({ intensity: originalIntensity }, 500)
+                            .easing(TWEEN.Easing.Quadratic.In)
+                            .start();
+                    })
+                    .start();
+            }
+        });
+    }
+    
+    /**
+     * 十六进制颜色转RGBA
+     */
+    hexToRgba(hex, alpha = 1) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
     
     /**
@@ -865,6 +1424,66 @@ class PhotoSphereApp {
     getLightModeEmoji(mode) {
         const emojis = ['☀️', '🌌', '🌠'];
         return emojis[mode] || '💡';
+    }
+    
+    /**
+     * 切换折叠菜单（移动端）
+     */
+    toggleCollapseMenu() {
+        const collapseMenu = document.getElementById('collapse-menu');
+        if (!collapseMenu) return;
+        
+        const isVisible = collapseMenu.classList.contains('show');
+        
+        if (isVisible) {
+            this.hideCollapseMenu();
+        } else {
+            this.showCollapseMenu();
+        }
+    }
+    
+    /**
+     * 显示折叠菜单
+     */
+    showCollapseMenu() {
+        const collapseMenu = document.getElementById('collapse-menu');
+        if (!collapseMenu) return;
+        
+        collapseMenu.classList.add('show');
+        
+        // 添加遮罩层（点击外部关闭）
+        if (!document.getElementById('collapse-overlay')) {
+            const overlay = document.createElement('div');
+            overlay.id = 'collapse-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: transparent;
+                z-index: 1000;
+            `;
+            
+            overlay.addEventListener('click', () => this.hideCollapseMenu());
+            document.body.appendChild(overlay);
+        }
+    }
+    
+    /**
+     * 隐藏折叠菜单
+     */
+    hideCollapseMenu() {
+        const collapseMenu = document.getElementById('collapse-menu');
+        if (!collapseMenu) return;
+        
+        collapseMenu.classList.remove('show');
+        
+        // 移除遮罩层
+        const overlay = document.getElementById('collapse-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
     }
     
     /**
@@ -1193,6 +1812,30 @@ class PhotoSphereApp {
     }
     
     /**
+     * 查看照片（从信息卡调用）
+     */
+    viewPhoto(photoId) {
+        if (!photoId || !this.photoManager) return;
+        
+        // 查找照片数据
+        const photoData = this.photoManager.photos.find(p => p.id === photoId);
+        const photoMesh = this.photoManager.photoMeshes.find(m => m.userData.photoData?.id === photoId);
+        
+        if (photoData && photoMesh) {
+            // 显示照片查看器
+            this.showPhotoViewer(photoData, photoMesh);
+            
+            // 移除信息卡
+            const infoCard = document.getElementById('photo-info-card');
+            if (infoCard) {
+                infoCard.remove();
+            }
+        } else {
+            this.config.warn('找不到照片:', photoId);
+        }
+    }
+    
+    /**
      * 显示照片查看器
      */
     showPhotoViewer(photoData, mesh) {
@@ -1290,9 +1933,57 @@ class PhotoSphereApp {
     }
     
     /**
-     * 更新统计信息
+     * 更新统计信息（连接真实后端数据）
      */
-    updateStats() {
+    async updateStats() {
+        try {
+            // 获取纪念日信息（前端计算）
+            const memorialInfo = this.config.getMemorialInfo();
+            
+            if (this.elements.daysCount) {
+                this.elements.daysCount.textContent = memorialInfo.days;
+            }
+            
+            // 检查里程碑
+            if (memorialInfo.milestone) {
+                this.showToast(memorialInfo.milestone.message);
+            }
+            
+            // 从后端获取真实统计数据
+            const response = await fetch('/api/photos/stats');
+            
+            if (response.ok) {
+                const stats = await response.json();
+                
+                if (this.elements.photoCount) {
+                    this.elements.photoCount.textContent = stats.totalPhotos || 0;
+                }
+                
+                // 计算甜蜜指数（基于照片数量和在一起天数）
+                if (this.elements.sweetIndex) {
+                    const baseSweetness = 85;
+                    const photoBonus = Math.min((stats.totalPhotos || 0) * 0.5, 10); // 每张照片+0.5%，最多+10%
+                    const dayBonus = Math.min(memorialInfo.days * 0.01, 5); // 每天+0.01%，最多+5%
+                    const sweetIndex = Math.min(baseSweetness + photoBonus + dayBonus, 99);
+                    
+                    this.elements.sweetIndex.textContent = Math.floor(sweetIndex);
+                }
+                
+                this.config.log('统计信息已更新（使用真实数据）');
+            } else {
+                // 降级方案：使用本地数据
+                this.updateStatsFallback();
+            }
+        } catch (error) {
+            this.config.warn('获取统计数据失败，使用降级方案:', error);
+            this.updateStatsFallback();
+        }
+    }
+    
+    /**
+     * 统计信息降级方案（后端API不可用）
+     */
+    updateStatsFallback() {
         const memorialInfo = this.config.getMemorialInfo();
         
         if (this.elements.daysCount) {
@@ -1308,22 +1999,26 @@ class PhotoSphereApp {
             this.elements.sweetIndex.textContent = sweetIndex;
         }
         
-        // 检查里程碑
-        if (memorialInfo.milestone) {
-            this.showToast(memorialInfo.milestone.message);
-        }
+        this.config.log('统计信息已更新（使用降级方案）');
     }
     
     /**
      * 创建浮动元素（使用物理引擎）
      */
     createFloatingElements() {
+        // 防止重复创建浮动元素定时器
+        if (this.floatingElementsIntervalId) {
+            this.config.warn('浮动元素定时器已存在，跳过创建');
+            return;
+        }
+        
         const intervalId = setInterval(() => {
             if (Math.random() < this.config.ui.floatingEmojiProbability) {
                 this.createFloatingEmoji();
             }
         }, this.config.ui.floatingEmojiInterval);
         
+        this.floatingElementsIntervalId = intervalId;
         this.intervals.push(intervalId);
     }
     
@@ -1399,10 +2094,20 @@ class PhotoSphereApp {
      * 刷新照片（供上传模块调用）
      */
     async refreshPhotos() {
+        // 清理旧的浮动元素定时器（防止积累）
+        if (this.floatingElementsIntervalId) {
+            clearInterval(this.floatingElementsIntervalId);
+            this.floatingElementsIntervalId = null;
+            this.config.log('清理旧的浮动元素定时器');
+        }
+        
         if (this.photoManager) {
             await this.photoManager.refreshPhotos();
             this.updateStats();
         }
+        
+        // 重新创建浮动元素（使用新的定时器）
+        this.createFloatingElements();
     }
     
     /**
@@ -1448,6 +2153,21 @@ class PhotoSphereApp {
         // 清理定时器和间隔
         this.timers.forEach(timer => clearTimeout(timer));
         this.intervals.forEach(interval => clearInterval(interval));
+        
+        // 清理浮动元素定时器
+        if (this.floatingElementsIntervalId) {
+            clearInterval(this.floatingElementsIntervalId);
+            this.floatingElementsIntervalId = null;
+            this.config.log('浮动元素定时器已清理');
+        }
+        
+        // 清理 resize 动画帧
+        if (this.resizeAnimationFrame) {
+            cancelAnimationFrame(this.resizeAnimationFrame);
+            this.resizeAnimationFrame = null;
+            this.config.log('resize 动画帧已清理');
+        }
+        
         if (this.resizeTimer) {
             clearTimeout(this.resizeTimer);
         }

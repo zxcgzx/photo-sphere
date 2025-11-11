@@ -1469,41 +1469,27 @@
                     batch.forEach((url, batchIndex) => {
                         const index = i + batchIndex;
                         
-                        // 预检查图片是否存在
-                        const img = new Image();
-                        img.crossOrigin = 'anonymous';
-                        
-                        img.onload = () => {
-                            loader.load(
-                                url,
-                                (texture) => {
-                                    // 优化纹理设置
-                                    texture.minFilter = THREE.LinearFilter;
-                                    texture.magFilter = THREE.LinearFilter;
-                                    texture.generateMipmaps = false;
-                                    
-                                    createPhoto(texture, index, config.photoCount);
-                                    loadedImages++;
-                                    updateLoadingProgress(loadedImages);
-                                },
-                                undefined,
-                                (error) => {
-                                    console.warn(`无法加载 ${url}，使用占位图`);
-                                    createPlaceholderPhoto(index);
-                                    loadedImages++;
-                                    updateLoadingProgress(loadedImages);
-                                }
-                            );
-                        };
-                        
-                        img.onerror = () => {
-                            console.warn(`图片不存在: ${url}，使用占位图`);
-                            createPlaceholderPhoto(index);
-                            loadedImages++;
-                            updateLoadingProgress(loadedImages);
-                        };
-                        
-                        img.src = url;
+                        // 直接使用 TextureLoader 加载，避免重复下载
+                        loader.load(
+                            url,
+                            (texture) => {
+                                // 优化纹理设置
+                                texture.minFilter = THREE.LinearFilter;
+                                texture.magFilter = THREE.LinearFilter;
+                                texture.generateMipmaps = false;
+                                
+                                createPhoto(texture, index, config.photoCount);
+                                loadedImages++;
+                                updateLoadingProgress(loadedImages);
+                            },
+                            undefined,
+                            (error) => {
+                                console.warn(`无法加载 ${url}，使用占位图:`, error);
+                                createPlaceholderPhoto(index);
+                                loadedImages++;
+                                updateLoadingProgress(loadedImages);
+                            }
+                        );
                     });
                 }, i / batchSize * 100); // 延迟加载
             }

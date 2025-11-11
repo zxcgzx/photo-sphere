@@ -66,9 +66,10 @@ class PerformanceManager {
         this.renderer = null;
         this.gl = null;
         
-        // 定时器
+        // 定时器（使用 requestAnimationFrame 替代 setInterval）
         this.performanceTimer = null;
-        this.optimizationTimer = null;
+        this.optimizationAnimationFrame = null;
+        this.lastOptimizationCheck = 0;
         
         // 绑定方法
         this.updatePerformanceStats = this.updatePerformanceStats.bind(this);
@@ -663,13 +664,27 @@ class PerformanceManager {
     }
     
     /**
-     * 设置自动优化
+     * 设置自动优化（使用 requestAnimationFrame 替代 setInterval）
      */
     setupAutoOptimization() {
-        // 每5秒检查一次性能
-        this.optimizationTimer = setInterval(() => {
-            this.checkOptimizationNeeded();
-        }, 5000);
+        const checkInterval = 5000; // 每5秒检查一次
+        
+        const checkLoop = () => {
+            const now = Date.now();
+            
+            // 检查是否到了下一次检查时间
+            if (now - this.lastOptimizationCheck >= checkInterval) {
+                this.checkOptimizationNeeded();
+                this.lastOptimizationCheck = now;
+            }
+            
+            // 继续下一次检查
+            if (this.optimizationAnimationFrame !== null) {
+                this.optimizationAnimationFrame = requestAnimationFrame(checkLoop);
+            }
+        };
+        
+        this.optimizationAnimationFrame = requestAnimationFrame(checkLoop);
     }
     
     /**
@@ -714,9 +729,10 @@ class PerformanceManager {
     pauseMonitoring() {
         this.performanceTimer = false;
         
-        if (this.optimizationTimer) {
-            clearInterval(this.optimizationTimer);
-            this.optimizationTimer = null;
+        // 清理自动优化动画帧
+        if (this.optimizationAnimationFrame) {
+            cancelAnimationFrame(this.optimizationAnimationFrame);
+            this.optimizationAnimationFrame = null;
         }
     }
     
@@ -728,7 +744,8 @@ class PerformanceManager {
             this.startPerformanceMonitoring();
         }
         
-        if (!this.optimizationTimer) {
+        // 重新启动自动优化（使用 requestAnimationFrame）
+        if (!this.optimizationAnimationFrame) {
             this.setupAutoOptimization();
         }
     }

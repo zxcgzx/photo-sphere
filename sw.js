@@ -29,7 +29,12 @@ const STATIC_ASSETS = [
   '/js/photoManager.js',
   '/js/sceneManager.js',
   '/js/uploadModal.js',
-  '/manifest.json'
+  '/manifest.json',
+  // CDN 资源（跨域）
+  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js',
+  'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&display=swap'
 ];
 
 // 需要网络优先的资源（API请求等）

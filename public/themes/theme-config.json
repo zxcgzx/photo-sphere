@@ -1,0 +1,123 @@
+{
+  "default": {
+    "title": "我们的小宇宙 - 3D照片星球",
+    "passwordScreen": {
+      "title": "我们的小宇宙",
+      "subtitle": "请输入密码，进入我们的专属空间",
+      "monthLabel": "第一次见面的月份",
+      "nicknameLabel": "昵称",
+      "wordLabel": "选择心动词",
+      "enterButton": "进入宇宙",
+      "errorMessage": "答案不对哦，再想想~"
+    },
+    "controlButtons": {
+      "rotate": { "icon": "🔄", "text": "自动旋转" },
+      "stats": { "icon": "📊", "text": "统计" },
+      "random": { "icon": "🎲", "text": "随机看看" },
+      "mood": { "icon": "🎨", "text": "换个心情" },
+      "light": { "icon": "💡", "text": "切换光效" },
+      "surprise": { "icon": "🎉", "text": "小惊喜" },
+      "upload": { "icon": "📸", "text": "上传照片" }
+    },
+    "colors": {
+      "primary": "#9bb5ff",
+      "secondary": "#ff69b4",
+      "background": "linear-gradient(135deg, #0a0a2a 0%, #000814 50%, #000000 100%)",
+      "panelBg": "rgba(10, 10, 42, 0.9)"
+    },
+    "features": {
+      "heartbeat": false
+    }
+  },
+  "romantic": {
+    "title": "我们的宇宙 · 时光星轨",
+    "passwordScreen": {
+      "title": "时光星轨",
+      "subtitle": "在亿万星辰中，我找到了你",
+      "monthLabel": "我们第一次见面的月份",
+      "nicknameLabel": "你的专属昵称",
+      "wordLabel": "你是我的...",
+      "enterButton": "开启星轨",
+      "errorMessage": "答案不对哦，再想想~"
+    },
+    "controlButtons": {
+      "rotate": { "icon": "🌙", "text": "星轨流转" },
+      "stats": { "icon": "📜", "text": "时光卷轴" },
+      "random": { "icon": "💫", "text": "随机回忆" },
+      "mood": { "icon": "🌈", "text": "星云变幻" },
+      "light": { "icon": "✨", "text": "星光闪烁" },
+      "heartbeat": { "icon": "💕", "text": "心跳同步" },
+      "surprise": { "icon": "🎊", "text": "浪漫惊喜" },
+      "upload": { "icon": "📸", "text": "捕捉时光" }
+    },
+    "colors": {
+      "primary": "#d6b3ff",
+      "secondary": "#ff69b4",
+      "background": "linear-gradient(135deg, #1a0033 0%, #330066 30%, #4d0099 70%, #1a0033 100%)",
+      "panelBg": "rgba(26, 0, 51, 0.9)"
+    },
+    "features": {
+      "heartbeat": true
+    }
+  },
+  "ultimate": {
+    "title": "永恒之心 · 我们的宇宙",
+    "passwordScreen": {
+      "title": "永恒之心",
+      "subtitle": "在时间的尽头，我依然爱你",
+      "monthLabel": "我们第一次见面的月份",
+      "nicknameLabel": "你的专属昵称",
+      "wordLabel": "选择心动词",
+      "enterButton": "进入永恒",
+      "errorMessage": "答案不对哦，再想想~"
+    },
+    "controlButtons": {
+      "rotate": { "icon": "🌟", "text": "永恒旋转" },
+      "stats": { "icon": "📊", "text": "数据统计" },
+      "random": { "icon": "🎲", "text": "随机探索" },
+      "mood": { "icon": "🎨", "text": "主题切换" },
+      "light": { "icon": "💡", "text": "光效控制" },
+      "surprise": { "icon": "🎉", "text": "终极惊喜" },
+      "upload": { "icon": "📸", "text": "上传照片" }
+    },
+    "colors": {
+      "primary": "#9bb5ff",
+      "secondary": "#ff1493",
+      "background": "linear-gradient(135deg, #000428 0%, #004e92 50%, #000814 100%)",
+      "panelBg": "rgba(0, 4, 40, 0.95)"
+    },
+    "features": {
+      "heartbeat": false
+    }
+  },
+  "enterprise": {
+    "title": "永恒之心 · 企业级渲染系统 v4.0",
+    "passwordScreen": {
+      "title": "EternalHeart Enterprise",
+      "subtitle": "Enterprise Photo Sphere System",
+      "monthLabel": "First Meet Month",
+      "nicknameLabel": "Nickname",
+      "wordLabel": "Select Word",
+      "enterButton": "Enter System",
+      "errorMessage": "Incorrect answer, please try again"
+    },
+    "controlButtons": {
+      "rotate": { "icon": "🔄", "text": "Auto Rotate" },
+      "stats": { "icon": "📊", "text": "Statistics" },
+      "random": { "icon": "🎲", "text": "Random View" },
+      "mood": { "icon": "🎨", "text": "Change Theme" },
+      "light": { "icon": "💡", "text": "Toggle Lights" },
+      "surprise": { "icon": "🎉", "text": "Surprise" },
+      "upload": { "icon": "📤", "text": "Upload" }
+    },
+    "colors": {
+      "primary": "#00d4ff",
+      "secondary": "#ff6b6b",
+      "background": "linear-gradient(135deg, #0c0c1a 0%, #1a1a3a 50%, #0a0a2a 100%)",
+      "panelBg": "rgba(12, 12, 26, 0.95)"
+    },
+    "features": {
+      "heartbeat": false
+    }
+  }
+}
