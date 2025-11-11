@@ -10,8 +10,8 @@ import PhotoManager from './photoManager.js';
 import PerformanceManager from './performanceManager.js';
 import DebugPanel from './debugPanel.js';
 import UploadModal from './uploadModal.js';
-import EffectsManager from './effectsManager.js';
-import PhysicsParticleSystem from './particleSystem.js';
+import ArtisticEffectsManager from './effectsManager.js';
+import ArtisticParticleSystem from './particleSystem.js';
 
 class PhotoSphereApp {
     constructor() {
@@ -100,10 +100,10 @@ class PhotoSphereApp {
             await this.initializeScene();
             
             // 初始化特效管理器
-            this.effectsManager = new EffectsManager(this.sceneManager);
+            this.effectsManager = new ArtisticEffectsManager(this.sceneManager);
             
             // 初始化物理粒子系统
-            this.particleSystem = new PhysicsParticleSystem();
+            this.particleSystem = new ArtisticParticleSystem();
             
             // 初始化照片管理器
             await this.initializePhotoManager();
@@ -868,44 +868,181 @@ class PhotoSphereApp {
     }
     
     /**
-     * 小惊喜效果
+     * 小惊喜效果 - 艺术化版本
      */
     surprise() {
-        // 使用新的特效系统创建流星雨
+        // 创建史诗级的流星雨
         if (this.effectsManager) {
-            this.effectsManager.createMeteorShower(15, {
+            // 第一波：主流星雨（15个）
+            this.effectsManager.createMeteorShowerNatural(15, {
                 trailLength: 80,
                 duration: 3000
             });
+            
+            // 第二波：延迟的小型流星雨（8个）
+            setTimeout(() => {
+                this.effectsManager.createMeteorShowerNatural(8, {
+                    trailLength: 60,
+                    duration: 2500
+                });
+            }, 1500);
+            
+            // 第三波：最后的闪耀（5个）
+            setTimeout(() => {
+                this.effectsManager.createMeteorShowerNatural(5, {
+                    trailLength: 100,
+                    duration: 3500
+                });
+            }, 3000);
         }
         
-        // 照片脉冲动画
+        // 创建魔法光尘围绕照片
+        if (this.particleSystem) {
+            setTimeout(() => {
+                this.photoManager.photoMeshes.forEach((photo, index) => {
+                    if (!photo.userData.isPhoto || photo.userData.isPlaceholder) return;
+                    
+                    setTimeout(() => {
+                        this.particleSystem.createMagicSparkles(
+                            photo.position,
+                            { count: 8 + Math.floor(Math.random() * 7) }
+                        );
+                    }, index * 100);
+                });
+            }, 500);
+        }
+        
+        // 照片脉冲动画（艺术化）
         this.photoManager.photoMeshes.forEach((photo, index) => {
             if (!photo.userData.isPhoto || photo.userData.isPlaceholder) return;
             
-            const delay = index * 30;
+            const delay = index * 50; // 更自然的间隔
+            
             if (window.TWEEN) {
+                // 主脉冲
                 new TWEEN.Tween(photo.scale)
-                    .to({ x: 1.2, y: 1.2, z: 1.2 }, this.config.animations.pulseScaleDuration)
+                    .to({ x: 1.3, y: 1.3, z: 1.3 }, 800)
                     .delay(delay)
-                    .easing(TWEEN.Easing.Sinusoidal.InOut)
+                    .easing(TWEEN.Easing.Elastic.Out)
                     .onComplete(() => {
                         new TWEEN.Tween(photo.scale)
-                            .to({ x: 1, y: 1, z: 1 }, this.config.animations.pulseScaleDuration)
+                            .to({ x: 1, y: 1, z: 1 }, 1200)
+                            .easing(TWEEN.Easing.Bounce.Out)
                             .start();
                     })
                     .start();
                 
-                // 旋转效果
+                // 旋转效果（更自然）
                 new TWEEN.Tween(photo.rotation)
-                    .to({ z: photo.rotation.z + Math.PI * 2 }, this.config.animations.rotationDuration)
+                    .to({ 
+                        x: photo.rotation.x + (Math.random() - 0.5) * 0.5,
+                        y: photo.rotation.y + (Math.random() - 0.5) * 0.5,
+                        z: photo.rotation.z + Math.PI * (1 + Math.random()) 
+                    }, 2000 + Math.random() * 1000)
                     .delay(delay)
                     .easing(TWEEN.Easing.Quadratic.InOut)
+                    .start();
+                
+                // 位置微动（增加生动感）
+                const originalPosition = photo.userData.originalPosition || photo.position.clone();
+                new TWEEN.Tween(photo.position)
+                    .to({
+                        x: originalPosition.x + (Math.random() - 0.5) * 20,
+                        y: originalPosition.y + (Math.random() - 0.5) * 20,
+                        z: originalPosition.z + (Math.random() - 0.5) * 20
+                    }, 1500)
+                    .delay(delay)
+                    .easing(TWEEN.Easing.Sinusoidal.InOut)
+                    .onComplete(() => {
+                        new TWEEN.Tween(photo.position)
+                            .to(originalPosition, 1500)
+                            .easing(TWEEN.Easing.Sinusoidal.InOut)
+                            .start();
+                    })
                     .start();
             }
         });
         
-        this.showToast('流星雨来啦！🌠');
+        // 创建庆祝效果
+        setTimeout(() => {
+            if (this.particleSystem) {
+                this.particleSystem.createEmotionRain('celebration', 25);
+            }
+        }, 2000);
+        
+        // 显示艺术化的提示
+        this.showArtisticToast('✨ 宇宙为你闪耀 ✨');
+    }
+    
+    /**
+     * 显示艺术化的Toast提示
+     */
+    showArtisticToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'artistic-toast';
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+            color: white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 10000;
+            pointer-events: none;
+            opacity: 0;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(102, 126, 234, 0.5);
+            animation: artisticToast 4s ease-out forwards;
+        `;
+        
+        // 添加动画样式
+        if (!document.querySelector('#artisticToastStyle')) {
+            const style = document.createElement('style');
+            style.id = 'artisticToastStyle';
+            style.textContent = `
+                @keyframes artisticToast {
+                    0% { 
+                        opacity: 0; 
+                        transform: translate(-50%, -50%) scale(0.5) rotate(-10deg);
+                        filter: blur(10px);
+                    }
+                    20% { 
+                        opacity: 1; 
+                        transform: translate(-50%, -50%) scale(1.1) rotate(2deg);
+                        filter: blur(0);
+                    }
+                    40% { 
+                        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                    }
+                    80% { 
+                        opacity: 1; 
+                        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                    }
+                    100% { 
+                        opacity: 0; 
+                        transform: translate(-50%, -50%) scale(0.8) rotate(5deg);
+                        filter: blur(5px);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(toast);
+        
+        // 自动移除
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 4000);
     }
     
     /**
