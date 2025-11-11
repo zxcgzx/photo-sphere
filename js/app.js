@@ -838,9 +838,19 @@ class EternalHeartApp {
             return;
         }
         
-        // 简化：直接移动到照片位置的1.5倍距离（在照片外侧）
+        // 获取照片位置
         const photoPosition = photo.mesh.position.clone();
-        const targetPosition = photoPosition.clone().multiplyScalar(1.5);
+        const photoDistance = photoPosition.length();
+        
+        // 确保相机距离球心至少为球体半径的1.2倍（避免穿透）
+        const minDistance = photoDistance * 1.2;
+        const targetDistance = Math.max(minDistance, photoDistance + 200);
+        
+        // 从球心到照片的方向
+        const direction = photoPosition.clone().normalize();
+        
+        // 目标位置：在照片外侧，保持安全距离
+        const targetPosition = direction.multiplyScalar(targetDistance);
         
         console.log('[focusOnPhoto] 照片位置:', photoPosition);
         console.log('[focusOnPhoto] 目标位置:', targetPosition);

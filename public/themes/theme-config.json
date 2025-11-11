@@ -20,10 +20,15 @@
       "upload": { "icon": "📸", "text": "上传照片" }
     },
     "colors": {
-      "primary": "#9bb5ff",
-      "secondary": "#ff69b4",
-      "background": "linear-gradient(135deg, #0a0a2a 0%, #000814 50%, #000000 100%)",
-      "panelBg": "rgba(10, 10, 42, 0.9)"
+      "primary": "#8fa8ff",
+      "secondary": "#ff7eb6",
+      "background": "linear-gradient(135deg, #0f0f2e 0%, #1a1a3a 50%, #0a0a2a 100%)",
+      "panelBg": "rgba(15, 15, 46, 0.9)",
+      "text": "#b8c5ff",
+      "textSecondary": "rgba(184, 197, 255, 0.7)",
+      "border": "rgba(143, 168, 255, 0.3)",
+      "shadow": "rgba(143, 168, 255, 0.2)",
+      "glow": "rgba(143, 168, 255, 0.4)"
     },
     "features": {
       "heartbeat": false
@@ -51,10 +56,15 @@
       "upload": { "icon": "📸", "text": "捕捉时光" }
     },
     "colors": {
-      "primary": "#d6b3ff",
-      "secondary": "#ff69b4",
-      "background": "linear-gradient(135deg, #1a0033 0%, #330066 30%, #4d0099 70%, #1a0033 100%)",
-      "panelBg": "rgba(26, 0, 51, 0.9)"
+      "primary": "#e6c2ff",
+      "secondary": "#ff8ac5",
+      "background": "linear-gradient(135deg, #2a0a3d 0%, #3d1a5a 30%, #4a2a6a 70%, #2a0a3d 100%)",
+      "panelBg": "rgba(42, 10, 61, 0.9)",
+      "text": "#e6d1ff",
+      "textSecondary": "rgba(230, 209, 255, 0.7)",
+      "border": "rgba(230, 194, 255, 0.3)",
+      "shadow": "rgba(230, 194, 255, 0.2)",
+      "glow": "rgba(230, 194, 255, 0.4)"
     },
     "features": {
       "heartbeat": true
@@ -81,10 +91,15 @@
       "upload": { "icon": "📸", "text": "上传照片" }
     },
     "colors": {
-      "primary": "#9bb5ff",
-      "secondary": "#ff1493",
-      "background": "linear-gradient(135deg, #000428 0%, #004e92 50%, #000814 100%)",
-      "panelBg": "rgba(0, 4, 40, 0.95)"
+      "primary": "#7afcff",
+      "secondary": "#ff2a6d",
+      "background": "linear-gradient(135deg, #001a33 0%, #003366 50%, #001a33 100%)",
+      "panelBg": "rgba(0, 26, 51, 0.95)",
+      "text": "#a3f7ff",
+      "textSecondary": "rgba(163, 247, 255, 0.7)",
+      "border": "rgba(122, 252, 255, 0.3)",
+      "shadow": "rgba(122, 252, 255, 0.2)",
+      "glow": "rgba(122, 252, 255, 0.4)"
     },
     "features": {
       "heartbeat": false
@@ -111,10 +126,15 @@
       "upload": { "icon": "📤", "text": "Upload" }
     },
     "colors": {
-      "primary": "#00d4ff",
-      "secondary": "#ff6b6b",
-      "background": "linear-gradient(135deg, #0c0c1a 0%, #1a1a3a 50%, #0a0a2a 100%)",
-      "panelBg": "rgba(12, 12, 26, 0.95)"
+      "primary": "#00e5ff",
+      "secondary": "#ff6b8a",
+      "background": "linear-gradient(135deg, #121226 0%, #1e1e3e 50%, #121226 100%)",
+      "panelBg": "rgba(18, 18, 38, 0.95)",
+      "text": "#c0f0ff",
+      "textSecondary": "rgba(192, 240, 255, 0.7)",
+      "border": "rgba(0, 229, 255, 0.3)",
+      "shadow": "rgba(0, 229, 255, 0.2)",
+      "glow": "rgba(0, 229, 255, 0.4)"
     },
     "features": {
       "heartbeat": false
