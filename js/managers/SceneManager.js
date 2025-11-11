@@ -105,23 +105,28 @@ export class SceneManager {
     }
     
     /**
-     * 创建星空背景
+     * 创建星空背景（修复：复用现有canvas，修复pixelRatio）
      */
     createStarfield() {
         try {
             this.performanceManager?.mark('starfield_create_start');
             
-            // 创建星空画布
-            const starCanvas = document.createElement('canvas');
-            starCanvas.id = 'stars-canvas';
-            starCanvas.style.position = 'fixed';
-            starCanvas.style.top = '0';
-            starCanvas.style.left = '0';
-            starCanvas.style.width = '100%';
-            starCanvas.style.height = '100%';
-            starCanvas.style.zIndex = '-3';
+            // 检查是否已存在星空画布
+            let starCanvas = document.getElementById('stars-canvas');
             
-            document.body.appendChild(starCanvas);
+            if (!starCanvas) {
+                // 如果不存在，创建新的
+                starCanvas = document.createElement('canvas');
+                starCanvas.id = 'stars-canvas';
+                starCanvas.style.position = 'fixed';
+                starCanvas.style.top = '0';
+                starCanvas.style.left = '0';
+                starCanvas.style.width = '100%';
+                starCanvas.style.height = '100%';
+                starCanvas.style.zIndex = '-3';
+                
+                document.body.appendChild(starCanvas);
+            }
             
             // 绘制星空
             this.drawStars(starCanvas);
@@ -135,18 +140,20 @@ export class SceneManager {
     }
     
     /**
-     * 绘制星星
+     * 绘制星星（修复pixelRatio）
      */
     drawStars(canvas) {
         const ctx = canvas.getContext('2d');
         const width = window.innerWidth;
         const height = window.innerHeight;
         
-        canvas.width = width * this.config.pixelRatio || 2;
-        canvas.height = height * this.config.pixelRatio || 2;
+        // 修复pixelRatio：使用设备像素比或默认值
+        const pixelRatio = window.devicePixelRatio || 1;
+        canvas.width = width * pixelRatio;
+        canvas.height = height * pixelRatio;
         
-        if (this.config.pixelRatio && this.config.pixelRatio > 1) {
-            ctx.scale(this.config.pixelRatio, this.config.pixelRatio);
+        if (pixelRatio > 1) {
+            ctx.scale(pixelRatio, pixelRatio);
         }
         
         // 创建深邃背景

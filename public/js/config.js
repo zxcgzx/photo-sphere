@@ -198,7 +198,7 @@ class Config {
         // 调试配置
         this.debug = {
             enableStats: window.location.hash.includes('debug'),
-            enableConsoleLog: process?.env?.NODE_ENV === 'development' || window.location.hash.includes('debug'),
+            enableConsoleLog: (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') || window.location.hash.includes('debug'),
             showBoundingBoxes: window.location.hash.includes('bbox'),
             showGrid: window.location.hash.includes('grid')
         };

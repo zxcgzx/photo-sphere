@@ -6,7 +6,8 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 
-const { initDatabase } = require('./database/init');
+// 移除SQLite数据库初始化，因为我们使用JSON数据库
+// const { initDatabase } = require('./database/init');
 const photoRoutes = require('./routes/photos');
 const AuthRoutes = require('./routes/auth');
 const uploadRoutes = require('./routes/upload');
@@ -76,7 +77,7 @@ app.get('/api/health', (req, res) => {
 
 // 服务主页面
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../index.html'));
+  res.sendFile(path.join(__dirname, '../index-new.html'));
 });
 
 // 404处理
@@ -106,9 +107,9 @@ async function startServer() {
   try {
     console.log('🌌 正在启动"我们的小宇宙"服务器...');
     
-    // 初始化数据库
-    await initDatabase();
-    console.log('✅ 数据库初始化完成');
+    // 初始化数据库（使用JSON数据库，跳过SQLite初始化）
+    // await initDatabase(); // 注释掉，因为我们使用JSON数据库
+    console.log('✅ JSON数据库已就绪');
     
     // 启动HTTP服务器
     app.listen(PORT, () => {

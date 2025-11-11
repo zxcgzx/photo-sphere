@@ -517,7 +517,7 @@ class PhotoSphereApp {
                     <p>• <strong>心动词：</strong>从四个选项中选择</p>
                 </div>
                 <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 20px;">
-                    默认答案：月份=1，昵称=宝宝，心动词=宇宙
+                    提示：答案藏在你们的回忆里 💕
                 </p>
                 <button class="btn btn-primary" onclick="this.closest('.hint-modal').remove()">
                     知道了

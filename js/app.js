@@ -9,7 +9,7 @@ import { RenderManager } from './managers/RenderManager.js';
 import { SceneManager } from './managers/SceneManager.js';
 import { PhotoManager } from './managers/PhotoManager.js';
 import { ParticleManager } from './managers/ParticleManager.js';
-import { PerformanceMonitor } from './utils/PerformanceMonitor.js';
+// import { PerformanceMonitor } from './utils/PerformanceMonitor.js'; // 暂时注释，因为该模块不存在
 
 class EternalHeartApp {
     constructor(containerId = 'canvas-container') {
