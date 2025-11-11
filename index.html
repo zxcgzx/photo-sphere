@@ -880,6 +880,10 @@
             <span>🎉</span>
             <span>小惊喜</span>
         </button>
+        <button class="control-btn" id="btn-upload">
+            <span>📸</span>
+            <span>上传照片</span>
+        </button>
     </div>
     
     <div id="photo-viewer">
@@ -961,7 +965,7 @@
         // 密码配置 - 你可以修改这些答案
         const passwordConfig = {
             correctMonth: "1",        // 第一次见面的月份 (1-12)
-            correctNickname: "宝贝",  // 你们的昵称
+            correctNickname: "宝宝",  // 你们的昵称
             correctWord: "宇宙"       // "你是我的..."的答案
         };
         
@@ -1692,6 +1696,9 @@
             document.getElementById('btn-mood').addEventListener('click', changeMood);
             document.getElementById('btn-light').addEventListener('click', toggleLights);
             document.getElementById('btn-surprise').addEventListener('click', surprise);
+            document.getElementById('btn-upload').addEventListener('click', () => {
+                window.open('upload.html', '_blank');
+            });
             
             // 查看器关闭
             document.getElementById('viewer-close').addEventListener('click', closeViewer);
