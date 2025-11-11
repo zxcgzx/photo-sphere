@@ -10,6 +10,7 @@ import { SceneManager } from './managers/SceneManager.js';
 import { PhotoManager } from './managers/PhotoManager.js';
 import { ParticleManager } from './managers/ParticleManager.js';
 import { PerformanceMonitor } from './utils/PerformanceMonitor.js';
+import EffectsManager from './effects/EffectsManager.js';
 
 class EternalHeartApp {
     constructor(containerId = 'canvas-container') {
@@ -65,6 +66,9 @@ class EternalHeartApp {
             
             // 初始化粒子管理器
             await this.initParticleManager();
+            
+            // 初始化特效管理器
+            await this.initEffectsManager();
             
             // 设置UI
             this.setupUI();
@@ -225,6 +229,25 @@ class EternalHeartApp {
             
         } catch (error) {
             throw new Error(`粒子管理器初始化失败: ${error.message}`);
+        }
+    }
+    
+    /**
+     * 初始化特效管理器
+     */
+    async initEffectsManager() {
+        try {
+            console.log('[EternalHeartApp] 初始化特效管理器...');
+            
+            const scene = this.managers.render.getScene();
+            const sceneManager = this.managers.scene;
+            
+            this.managers.effects = new EffectsManager(sceneManager);
+            
+            console.log('[EternalHeartApp] 特效管理器初始化完成');
+            
+        } catch (error) {
+            throw new Error(`特效管理器初始化失败: ${error.message}`);
         }
     }
     
