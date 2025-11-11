@@ -10,8 +10,8 @@ import PhotoManager from './photoManager.js';
 import PerformanceManager from './performanceManager.js';
 import DebugPanel from './debugPanel.js';
 import UploadModal from './uploadModal.js';
-import ArtisticEffectsManager from './effectsManager.js';
-import ArtisticParticleSystem from './particleSystem.js';
+import RomanticEffectsManager from './romanticEffects.js';
+import RomanticParticleSystem from './romanticParticles.js';
 
 class PhotoSphereApp {
     constructor() {
@@ -100,10 +100,10 @@ class PhotoSphereApp {
             await this.initializeScene();
             
             // 初始化特效管理器
-            this.effectsManager = new ArtisticEffectsManager(this.sceneManager);
+            this.effectsManager = new RomanticEffectsManager(this.sceneManager);
             
             // 初始化物理粒子系统
-            this.particleSystem = new ArtisticParticleSystem();
+            this.particleSystem = new RomanticParticleSystem();
             
             // 初始化照片管理器
             await this.initializePhotoManager();
@@ -868,94 +868,121 @@ class PhotoSphereApp {
     }
     
     /**
-     * 小惊喜效果 - 艺术化版本
+     * 浪漫惊喜 - 讲述一个爱情故事
      */
     surprise() {
-        // 创建史诗级的流星雨
+        // 开始：情书流星雨（讲述我们的故事）
         if (this.effectsManager) {
-            // 第一波：主流星雨（15个）
-            this.effectsManager.createMeteorShowerNatural(15, {
-                trailLength: 80,
-                duration: 3000
+            // 创建有故事的流星雨（三个阶段：初见→深爱→永恒）
+            const loveStory = this.effectsManager.createLoveMeteorShower(12);
+            
+            // 记录这个珍贵时刻
+            this.recordMoment('流星雨开始', { story: loveStory.story });
+        }
+        
+        // 发展：每一张照片都绽放爱意
+        if (this.effectsManager) {
+            this.photoManager.photoMeshes.forEach((photo, index) => {
+                if (!photo.userData.isPhoto || photo.userData.isPlaceholder) return;
+                
+                // 每个照片都有自己的情感绽放
+                setTimeout(() => {
+                    const bloom = this.effectsManager.createEmotionBloom(
+                        photo.position,
+                        index % 2 === 0 ? 'love' : 'joy'
+                    );
+                    
+                    // 记录每一朵绽放的爱
+                    this.recordMoment(`照片${index}绽放`, { 
+                        emotion: index % 2 === 0 ? 'love' : 'joy',
+                        position: photo.position 
+                    });
+                }, index * 200); // 自然的节奏，像心跳
             });
-            
-            // 第二波：延迟的小型流星雨（8个）
+        }
+        
+        // 深入：时光尘埃营造梦幻氛围
+        if (this.effectsManager) {
             setTimeout(() => {
-                this.effectsManager.createMeteorShowerNatural(8, {
-                    trailLength: 60,
-                    duration: 2500
-                });
-            }, 1500);
-            
-            // 第三波：最后的闪耀（5个）
+                this.effectsManager.createTimeDust(
+                    new THREE.Vector3(0, 0, 0),
+                    { count: 30, lifetime: 8000 }
+                );
+                
+                this.recordMoment('时光尘埃', { center: 'scene' });
+            }, 1000);
+        }
+        
+        // 高潮：永恒的誓言
+        if (this.effectsManager) {
             setTimeout(() => {
-                this.effectsManager.createMeteorShowerNatural(5, {
-                    trailLength: 100,
-                    duration: 3500
+                const promise = this.effectsManager.createEternalPromise(
+                    new THREE.Vector3(0, 200, 0),
+                    { layers: 3, particlesPerLayer: 12 }
+                );
+                
+                this.recordMoment('永恒的誓言', { 
+                    layers: promise.layers.length,
+                    center: promise.centerPosition 
                 });
             }, 3000);
         }
         
-        // 创建魔法光尘围绕照片
+        // 持续：思念之雨（持续的温柔）
         if (this.particleSystem) {
             setTimeout(() => {
-                this.photoManager.photoMeshes.forEach((photo, index) => {
-                    if (!photo.userData.isPhoto || photo.userData.isPlaceholder) return;
-                    
-                    setTimeout(() => {
-                        this.particleSystem.createMagicSparkles(
-                            photo.position,
-                            { count: 8 + Math.floor(Math.random() * 7) }
-                        );
-                    }, index * 100);
-                });
-            }, 500);
+                this.particleSystem.createLongingRain('medium');
+                this.recordMoment('思念之雨', { intensity: 'medium' });
+            }, 1500);
         }
         
-        // 照片脉冲动画（艺术化）
+        // 照片的情感共鸣
         this.photoManager.photoMeshes.forEach((photo, index) => {
             if (!photo.userData.isPhoto || photo.userData.isPlaceholder) return;
             
-            const delay = index * 50; // 更自然的间隔
+            // 每个照片都有自己的情感节奏
+            const delay = index * 300; // 像诗歌的韵律
             
             if (window.TWEEN) {
-                // 主脉冲
+                // 温柔的拥抱（缩放）
                 new TWEEN.Tween(photo.scale)
-                    .to({ x: 1.3, y: 1.3, z: 1.3 }, 800)
+                    .to({ x: 1.25, y: 1.25, z: 1.25 }, 1200)
                     .delay(delay)
-                    .easing(TWEEN.Easing.Elastic.Out)
+                    .easing(TWEEN.Easing.Cubic.Out)
                     .onComplete(() => {
                         new TWEEN.Tween(photo.scale)
-                            .to({ x: 1, y: 1, z: 1 }, 1200)
-                            .easing(TWEEN.Easing.Bounce.Out)
+                            .to({ x: 1, y: 1, z: 1 }, 2000)
+                            .easing(TWEEN.Easing.Elastic.Out)
                             .start();
                     })
                     .start();
                 
-                // 旋转效果（更自然）
+                // 心跳般的旋转
+                const heartBeatRotation = Math.PI * (0.5 + Math.random());
                 new TWEEN.Tween(photo.rotation)
                     .to({ 
-                        x: photo.rotation.x + (Math.random() - 0.5) * 0.5,
-                        y: photo.rotation.y + (Math.random() - 0.5) * 0.5,
-                        z: photo.rotation.z + Math.PI * (1 + Math.random()) 
-                    }, 2000 + Math.random() * 1000)
+                        x: photo.rotation.x + (Math.random() - 0.5) * 0.3,
+                        y: photo.rotation.y + heartBeatRotation,
+                        z: photo.rotation.z + (Math.random() - 0.5) * 0.2
+                    }, 2500 + Math.random() * 1000)
                     .delay(delay)
-                    .easing(TWEEN.Easing.Quadratic.InOut)
+                    .easing(TWEEN.Easing.Sinusoidal.InOut)
                     .start();
                 
-                // 位置微动（增加生动感）
+                // 思念的摇摆（位置）
                 const originalPosition = photo.userData.originalPosition || photo.position.clone();
+                const longingAmplitude = 15;
                 new TWEEN.Tween(photo.position)
                     .to({
-                        x: originalPosition.x + (Math.random() - 0.5) * 20,
-                        y: originalPosition.y + (Math.random() - 0.5) * 20,
-                        z: originalPosition.z + (Math.random() - 0.5) * 20
-                    }, 1500)
+                        x: originalPosition.x + Math.sin(index) * longingAmplitude,
+                        y: originalPosition.y + Math.cos(index * 2) * longingAmplitude * 0.5,
+                        z: originalPosition.z + Math.sin(index * 3) * longingAmplitude * 0.3
+                    }, 2000)
                     .delay(delay)
                     .easing(TWEEN.Easing.Sinusoidal.InOut)
                     .onComplete(() => {
                         new TWEEN.Tween(photo.position)
-                            .to(originalPosition, 1500)
+                            .to(originalPosition, 2000)
                             .easing(TWEEN.Easing.Sinusoidal.InOut)
                             .start();
                     })
@@ -963,15 +990,113 @@ class PhotoSphereApp {
             }
         });
         
-        // 创建庆祝效果
-        setTimeout(() => {
-            if (this.particleSystem) {
-                this.particleSystem.createEmotionRain('celebration', 25);
-            }
-        }, 2000);
+        // 记录这个浪漫时刻
+        this.recordMoment('浪漫惊喜', { 
+            type: 'loveStory',
+            duration: '10s',
+            phases: ['流星雨', '情感绽放', '时光尘埃', '永恒誓言', '思念之雨']
+        });
         
-        // 显示艺术化的提示
-        this.showArtisticToast('✨ 宇宙为你闪耀 ✨');
+        // 显示浪漫的提示
+        this.showRomanticToast('💕 在时间的长河里，我只为你闪耀 💕');
+    }
+    
+    /**
+     * 显示浪漫的Toast提示
+     */
+    showRomanticToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'romantic-toast';
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, 
+                rgba(255, 105, 180, 0.95), 
+                rgba(255, 20, 147, 0.95),
+                rgba(221, 160, 221, 0.95));
+            color: white;
+            padding: 30px 60px;
+            border-radius: 60px;
+            font-size: 24px;
+            font-weight: 600;
+            z-index: 10000;
+            pointer-events: none;
+            opacity: 0;
+            text-align: center;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.4), 
+                0 0 30px rgba(255, 20, 147, 0.7),
+                inset 0 0 20px rgba(255, 255, 255, 0.3);
+            font-family: 'Noto Sans SC', Arial, sans-serif;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            max-width: 80%;
+            line-height: 1.4;
+            animation: romanticToast 6s ease-out forwards;
+        `;
+        
+        // 添加动画样式
+        if (!document.querySelector('#romanticToastStyle')) {
+            const style = document.createElement('style');
+            style.id = 'romanticToastStyle';
+            style.textContent = `
+                @keyframes romanticToast {
+                    0% { 
+                        opacity: 0; 
+                        transform: translate(-50%, -50%) scale(0.3) rotate(-15deg);
+                        filter: blur(20px);
+                    }
+                    15% { 
+                        opacity: 1; 
+                        transform: translate(-50%, -50%) scale(1.1) rotate(5deg);
+                        filter: blur(0);
+                    }
+                    25% { 
+                        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                    }
+                    85% { 
+                        opacity: 1; 
+                        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                    }
+                    100% { 
+                        opacity: 0; 
+                        transform: translate(-50%, -50%) scale(0.8) rotate(10deg);
+                        filter: blur(10px);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(toast);
+        
+        // 自动移除
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 6000);
+    }
+    
+    /**
+     * 记录珍贵时刻（用于浪漫回忆）
+     */
+    recordMoment(type, data) {
+        const moment = {
+            type: type,
+            timestamp: Date.now(),
+            data: data,
+            heartbeat: this.emotionalState?.heartbeat || 60,
+            mood: this.emotionalState?.mood || 'gentle'
+        };
+        
+        // 可以存储到本地或发送到服务器
+        console.log('💕 记录珍贵时刻:', moment);
     }
     
     /**
