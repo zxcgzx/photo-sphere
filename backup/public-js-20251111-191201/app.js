@@ -74,6 +74,10 @@ class PhotoSphereApp {
         // 特效管理器
         this.effectsManager = null;
         
+        // 特效冷却状态
+        this.surpriseCooldown = false;
+        this.surpriseCooldownTime = 8000; // 8秒冷却时间
+        
         // 物理粒子系统
         this.particleSystem = null;
         
@@ -1499,6 +1503,19 @@ class PhotoSphereApp {
      * 浪漫惊喜 - 讲述一个爱情故事
      */
     surprise() {
+        // 检查冷却状态
+        if (this.surpriseCooldown) {
+            console.log('[surprise] 特效冷却中，请稍后再试');
+            this.showRomanticToast('💝 特效冷却中，请稍后再试...');
+            return;
+        }
+        
+        // 设置冷却状态
+        this.surpriseCooldown = true;
+        
+        // 禁用按钮
+        this.disableSurpriseButtons();
+        
         // 开始：情书流星雨（讲述我们的故事）
         if (this.effectsManager) {
             // 创建有故事的流星雨（三个阶段：初见→深爱→永恒）
@@ -1627,6 +1644,49 @@ class PhotoSphereApp {
         
         // 显示浪漫的提示
         this.showRomanticToast('💕 在时间的长河里，我只为你闪耀 💕');
+        
+        // 设置冷却恢复定时器
+        setTimeout(() => {
+            this.surpriseCooldown = false;
+            this.enableSurpriseButtons();
+            console.log('[surprise] 特效冷却结束，可以再次使用');
+        }, this.surpriseCooldownTime);
+    }
+    
+    /**
+     * 禁用惊喜按钮
+     */
+    disableSurpriseButtons() {
+        const buttons = [
+            this.elements.btnSurprise,
+            document.getElementById('btn-surprise-collapse')
+        ];
+        
+        buttons.forEach(btn => {
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            }
+        });
+    }
+    
+    /**
+     * 启用惊喜按钮
+     */
+    enableSurpriseButtons() {
+        const buttons = [
+            this.elements.btnSurprise,
+            document.getElementById('btn-surprise-collapse')
+        ];
+        
+        buttons.forEach(btn => {
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            }
+        });
     }
     
     /**

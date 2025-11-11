@@ -4,12 +4,12 @@
  * @version 4.1.0
  */
 
-import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+import { THREE_LIB as THREE } from './core/DependencyManager.js';
 import { RenderManager } from './managers/RenderManager.js';
 import { SceneManager } from './managers/SceneManager.js';
 import { PhotoManager } from './managers/PhotoManager.js';
 import { ParticleManager } from './managers/ParticleManager.js';
-// import { PerformanceMonitor } from './utils/PerformanceMonitor.js'; // 暂时注释，因为该模块不存在
+import { PerformanceMonitor } from './utils/PerformanceMonitor.js';
 
 class EternalHeartApp {
     constructor(containerId = 'canvas-container') {

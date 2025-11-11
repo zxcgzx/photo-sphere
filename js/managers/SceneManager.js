@@ -4,7 +4,7 @@
  * @version 4.1.0
  */
 
-import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+import { THREE_LIB as THREE } from '../core/DependencyManager.js';
 
 export class SceneManager {
     constructor(scene, config = {}, performanceManager) {

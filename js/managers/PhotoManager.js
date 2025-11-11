@@ -4,7 +4,7 @@
  * @version 4.1.0
  */
 
-import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+import { THREE_LIB as THREE } from '../core/DependencyManager.js';
 
 export class PhotoManager {
     constructor(scene, config = {}, performanceManager) {
@@ -81,34 +81,155 @@ export class PhotoManager {
     }
     
     /**
-     * 加载默认照片
+     * 从API加载照片
+     */
+    async loadPhotosFromAPI() {
+        try {
+            console.log('[PhotoManager] 尝试从API加载照片...');
+            
+            const response = await fetch('/api/photos');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            if (data.success && data.data && data.data.photos && data.data.photos.length > 0) {
+                const photos = data.data.photos;
+                console.log(`[PhotoManager] 从API加载了 ${photos.length} 张照片`);
+                
+                this.state.isLoading = true;
+                
+                const loadPromises = photos.map((photoData, index) => 
+                    this.loadPhotoFromAPI(photoData, index)
+                );
+                
+                await Promise.all(loadPromises);
+                
+                this.state.isLoading = false;
+                
+                // 显示成功提示
+                this.showLoadSuccess(`从服务器加载了 ${photos.length} 张照片`);
+                
+                return true;
+            } else {
+                console.warn('[PhotoManager] API返回空数据或无照片');
+                this.showLoadWarning('服务器暂无照片，将加载默认照片');
+                return false;
+            }
+            
+        } catch (error) {
+            console.error('[PhotoManager] 从API加载照片失败:', error);
+            this.showLoadError('无法从服务器加载照片，将使用默认照片');
+            return false;
+        }
+    }
+    
+    /**
+     * 从API数据加载单张照片
+     */
+    async loadPhotoFromAPI(photoData, index) {
+        try {
+            const photo = {
+                id: photoData.id || `photo_${index}`,
+                url: photoData.paths?.original || photoData.url,
+                index,
+                texture: null,
+                material: null,
+                mesh: null,
+                loaded: false,
+                metadata: {
+                    width: photoData.width || 512,
+                    height: photoData.height || 512,
+                    aspectRatio: (photoData.width || 512) / (photoData.height || 512),
+                    title: photoData.title || `照片 ${index + 1}`,
+                    description: photoData.description || '',
+                    createdAt: photoData.createdAt || new Date().toISOString()
+                }
+            };
+            
+            // 加载纹理
+            const texture = await this.loadTexture(photo.url);
+            photo.texture = texture;
+            photo.loaded = true;
+            
+            // 创建材质
+            const material = new THREE.MeshStandardMaterial({
+                map: texture,
+                transparent: true,
+                opacity: 0.9,
+                roughness: 0.3,
+                metalness: 0.1,
+                side: THREE.DoubleSide
+            });
+            
+            photo.material = material;
+            
+            // 添加到管理器
+            this.photos.set(photo.id, photo);
+            this.photoArray.push(photo);
+            this.loadedCount++;
+            
+            console.log(`[PhotoManager] API照片已加载: ${photo.id}`);
+            
+            return photo;
+            
+        } catch (error) {
+            console.error(`[PhotoManager] API照片加载失败: ${photoData.id}`, error);
+            return null;
+        }
+    }
+    
+    /**
+     * 加载默认照片（回退方案）
      */
     async loadDefaultPhotos() {
-        const defaultPhotos = [
-            'https://picsum.photos/512/512?random=1',
-            'https://picsum.photos/512/512?random=2',
-            'https://picsum.photos/512/512?random=3',
-            'https://picsum.photos/512/512?random=4',
-            'https://picsum.photos/512/512?random=5',
-            'https://picsum.photos/512/512?random=6',
-            'https://picsum.photos/512/512?random=7',
-            'https://picsum.photos/512/512?random=8',
-            'https://picsum.photos/512/512?random=9',
-            'https://picsum.photos/512/512?random=10',
-            'https://picsum.photos/512/512?random=11',
-            'https://picsum.photos/512/512?random=12'
-        ];
+        console.log('[PhotoManager] 加载默认照片...');
+        
+        // 尝试加载本地照片
+        const localPhotos = [];
+        for (let i = 1; i <= 12; i++) {
+            localPhotos.push(`photos/photo${i}.jpg`);
+        }
         
         this.state.isLoading = true;
         
-        const loadPromises = defaultPhotos.map((url, index) => 
+        const loadPromises = localPhotos.map((url, index) => 
+            this.loadPhoto(url, index)
+        );
+        
+        const results = await Promise.allSettled(loadPromises);
+        const successfulLoads = results.filter(r => r.status === 'fulfilled' && r.value !== null).length;
+        
+        this.state.isLoading = false;
+        
+        if (successfulLoads === 0) {
+            // 如果本地照片也加载失败，使用picsum随机图片
+            console.warn('[PhotoManager] 本地照片加载失败，使用随机图片');
+            await this.loadRandomPhotos();
+        } else {
+            console.log(`[PhotoManager] 已加载 ${successfulLoads} 张本地照片`);
+        }
+    }
+    
+    /**
+     * 加载随机照片（最终回退方案）
+     */
+    async loadRandomPhotos() {
+        const randomPhotos = [];
+        for (let i = 1; i <= 12; i++) {
+            randomPhotos.push(`https://picsum.photos/512/512?random=${i}`);
+        }
+        
+        this.state.isLoading = true;
+        
+        const loadPromises = randomPhotos.map((url, index) => 
             this.loadPhoto(url, index)
         );
         
         await Promise.all(loadPromises);
         
         this.state.isLoading = false;
-        console.log(`[PhotoManager] 已加载 ${this.loadedCount} 张照片`);
+        console.log(`[PhotoManager] 已加载 ${this.loadedCount} 张随机照片`);
     }
     
     /**
@@ -556,6 +677,122 @@ export class PhotoManager {
         if (!photo) return;
         
         // 从场景中移除
+        if (photo.mesh) {
+            this.scene.remove(photo.mesh);
+        }
+        
+        // 从数组中移除
+        this.photos.delete(photoId);
+        this.photoArray = this.photoArray.filter(p => p.id !== photoId);
+        
+        // 重新创建轨道
+        this.createPhotoOrbit();
+        
+        console.log(`[PhotoManager] 照片已移除: ${photoId}`);
+    }
+    
+    /**
+     * 刷新照片（重新从API加载）
+     */
+    async refreshPhotos() {
+        console.log('[PhotoManager] 刷新照片...');
+        
+        // 显示加载提示
+        this.showLoadInfo('正在刷新照片...');
+        
+        // 清空现有照片
+        this.clearAllPhotos();
+        
+        // 重新加载
+        const photosLoaded = await this.loadPhotosFromAPI();
+        
+        if (!photosLoaded) {
+            await this.loadDefaultPhotos();
+        }
+        
+        // 重新创建轨道
+        this.createPhotoOrbit();
+        
+        this.showLoadSuccess('照片刷新完成！');
+        
+        return photosLoaded;
+    }
+    
+    /**
+     * 清空所有照片
+     */
+    clearAllPhotos() {
+        // 从场景中移除所有照片
+        const photoGroup = this.scene.getObjectByName('PhotoGroup');
+        if (photoGroup) {
+            this.scene.remove(photoGroup);
+        }
+        
+        // 清空管理器数据
+        this.photos.clear();
+        this.photoArray = [];
+        this.loadedCount = 0;
+        this.currentIndex = 0;
+        
+        console.log('[PhotoManager] 所有照片已清空');
+    }
+    
+    /**
+     * 显示加载成功提示
+     */
+    showLoadSuccess(message) {
+        this.showToast(message, '#00ff88', '#000');
+    }
+    
+    /**
+     * 显示加载警告提示
+     */
+    showLoadWarning(message) {
+        this.showToast(message, '#ffc107', '#000');
+    }
+    
+    /**
+     * 显示加载错误提示
+     */
+    showLoadError(message) {
+        this.showToast(message, '#ff6b6b', '#fff');
+    }
+    
+    /**
+     * 显示加载信息提示
+     */
+    showLoadInfo(message) {
+        this.showToast(message, '#9bb5ff', '#000');
+    }
+    
+    /**
+     * 显示Toast提示
+     */
+    showToast(message, bgColor, textColor) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${bgColor};
+            color: ${textColor};
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-family: 'Noto Sans SC', sans-serif;
+            animation: slideIn 0.3s ease-out;
+            max-width: 300px;
+            font-size: 14px;
+        `;
+        toast.textContent = message;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideIn 0.3s ease-out reverse';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
         if (photo.mesh) {
             const photoGroup = this.scene.getObjectByName('PhotoGroup');
             if (photoGroup) {

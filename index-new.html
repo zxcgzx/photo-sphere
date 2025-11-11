@@ -750,20 +750,18 @@
     
     <!-- 应用模块（依赖在app.js中集中导入） -->
     <script type="module" src="/js/config.js"></script>
-    <script type="module" src="/js/themeManager.js"></script>
-    <script type="module" src="/js/authManager.js"></script>
-    <script type="module" src="/js/sceneManager.js"></script>
-    <script type="module" src="/js/lazyLoader.js"></script>
-    <script type="module" src="/js/performanceManager.js"></script>
-    <script type="module" src="/js/photoManager.js"></script>
-    <script type="module" src="/js/debugPanel.js"></script>
-    <script type="module" src="/js/uploadModal.js"></script>
+    <script type="module" src="/js/core/DependencyManager.js"></script>
+    <script type="module" src="/js/core/ThemeManager.js"></script>
+    <script type="module" src="/js/managers/RenderManager.js"></script>
+    <script type="module" src="/js/managers/SceneManager.js"></script>
+    <script type="module" src="/js/managers/PhotoManager.js"></script>
+    <script type="module" src="/js/managers/ParticleManager.js"></script>
     <script type="module" src="/js/app.js"></script>
     
     <!-- 应用启动脚本 -->
     <script type="module">
         import PhotoSphereApp from '/js/app.js';
-        import ThemeManager from '/js/themeManager.js';
+        import ThemeManager from '/js/core/ThemeManager.js';
         
         // 应用启动
         document.addEventListener('DOMContentLoaded', async () => {
