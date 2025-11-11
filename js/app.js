@@ -754,7 +754,7 @@ class EternalHeartApp {
         const camera = this.managers.render.getCamera();
         if (!camera) return;
         
-        // 计算相机目标位置（在照片外侧400距离，保持当前相机方向）
+        // 计算相机目标位置（在照片外侧400距离）
         const photoPosition = photo.mesh.position.clone();
         
         // 从球心(0,0,0)到照片的方向
@@ -777,8 +777,8 @@ class EternalHeartApp {
                 }, 1500) // 1.5秒动画
                 .easing(TWEEN.Easing.Quadratic.InOut)
                 .onUpdate(() => {
-                    // 让相机始终看向照片中心
-                    camera.lookAt(photoPosition);
+                    // 让相机看向球心(0,0,0)，这样能看到照片的正面
+                    camera.lookAt(0, 0, 0);
                 })
                 .start();
         }
