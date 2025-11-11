@@ -3,6 +3,11 @@
  * 协调所有模块的工作
  */
 
+// 集中导入外部依赖（避免重复加载）
+import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+import * as TWEEN from 'https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js';
+
+// 导入应用模块
 import { CONFIG } from './config.js';
 import AuthManager from './authManager.js';
 import SceneManager from './sceneManager.js';
@@ -12,6 +17,10 @@ import DebugPanel from './debugPanel.js';
 import UploadModal from './uploadModal.js';
 import RomanticEffectsManager from './romanticEffects.js';
 import RomanticParticleSystem from './romanticParticles.js';
+
+// 将依赖暴露到全局，供其他模块使用
+window.THREE = THREE;
+window.TWEEN = TWEEN;
 
 class PhotoSphereApp {
     constructor() {

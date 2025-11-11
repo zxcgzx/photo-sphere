@@ -10,7 +10,7 @@ class ThemeManager {
         this.config = config || CONFIG;
         this.currentTheme = 'default';
         this.themes = {};
-        this.themeConfigPath = '/public/themes/theme-config.json';
+        this.themeConfigPath = '/themes/theme-config.json';
     }
     
     /**
@@ -45,10 +45,79 @@ class ThemeManager {
             
             this.themes = await response.json();
             console.log('[ThemeManager] 加载了', Object.keys(this.themes).length, '个主题');
+            
+            // 显示成功提示
+            this.showThemeLoadSuccess(Object.keys(this.themes).length);
+            
         } catch (error) {
-            console.warn('[ThemeManager] 无法加载主题配置，使用内置默认主题:', error);
+            console.error('[ThemeManager] 无法加载主题配置:', error);
             this.themes = this.getBuiltInThemes();
+            
+            // 显示失败提示
+            this.showThemeLoadError(error.message);
         }
+    }
+    
+    /**
+     * 显示主题加载成功提示
+     */
+    showThemeLoadSuccess(themeCount) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #00ff88;
+            color: #000;
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-family: 'Noto Sans SC', sans-serif;
+            animation: slideIn 0.3s ease-out;
+        `;
+        toast.textContent = `✅ 主题加载成功！共 ${themeCount} 个主题可用`;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideIn 0.3s ease-out reverse';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    /**
+     * 显示主题加载错误提示
+     */
+    showThemeLoadError(errorMessage) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff6b6b;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-family: 'Noto Sans SC', sans-serif;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        `;
+        
+        toast.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 5px;">⚠️ 主题加载失败</div>
+            <div style="font-size: 0.9rem; opacity: 0.9;">${errorMessage}</div>
+            <div style="font-size: 0.8rem; margin-top: 8px; opacity: 0.8;">
+                已回退到默认主题，请检查网络连接或联系管理员。
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideIn 0.3s ease-out reverse';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
     }
     
     /**
