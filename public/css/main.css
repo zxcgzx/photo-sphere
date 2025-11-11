@@ -137,7 +137,7 @@ body {
 #main-title {
     font-size: 28px;
     font-weight: 300;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background: var(--button-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin: 0;
@@ -175,7 +175,7 @@ body {
 }
 
 .control-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--button-gradient);
     color: white;
     border: none;
     border-radius: 25px;
@@ -200,7 +200,7 @@ body {
 .control-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
-    background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+    background: var(--button-hover-gradient);
 }
 
 .control-btn:before {
@@ -269,7 +269,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #0a0a2a, #000814);
+    background: var(--background-gradient);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -476,7 +476,7 @@ body {
 
 .password-header h2 {
     font-size: 28px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background: var(--button-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 10px;
@@ -558,7 +558,7 @@ body {
 
 .word-btn.selected {
     border-color: #f093fb;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--button-gradient);
     color: white;
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
@@ -780,7 +780,7 @@ body {
 }
 
 .upload-modal-content {
-    background: linear-gradient(135deg, #1a1a3a, #2a1a4a);
+    background: var(--panel-bg);
     border-radius: 20px;
     width: 90%;
     max-width: 600px;
@@ -869,7 +869,7 @@ body {
 }
 
 .btn-upload-select {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--button-gradient);
     color: white;
     border: none;
     border-radius: 20px;
@@ -967,7 +967,7 @@ body {
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+    background: var(--button-gradient);
     width: 0%;
     transition: width 0.3s ease;
     border-radius: 3px;
@@ -998,7 +998,7 @@ body {
 }
 
 .upload-modal-footer .btn-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--button-gradient);
     color: white;
 }
 

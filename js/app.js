@@ -645,6 +645,10 @@ class EternalHeartApp {
             this.managers.particle.update(deltaTime, currentTime);
         }
         
+        if (this.managers.effects) {
+            this.managers.effects.update(deltaTime);
+        }
+        
         // 更新性能监控
         this.updatePerformanceMetrics();
         
