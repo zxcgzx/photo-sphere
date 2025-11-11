@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>身份认证测试页面</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #00ff88, #00ffff);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+        
+        .result {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .success { color: #00ff88; }
+        .error { color: #ff6b6b; }
+        .info { color: #64b5f6; }
+    </style>
+</head>
+<body>
+    <h1>🔐 身份认证系统测试</h1>
+    
+    <div class="test-section">
+        <h3>安全问题验证</h3>
+        <div>
+            <label>月份: </label>
+            <input type="number" id="month" value="1" min="1" max="12">
+        </div>
+        <div>
+            <label>昵称: </label>
+            <input type="text" id="nickname" value="宝宝">
+        </div>
+        <div>
+            <label>词语: </label>
+            <input type="text" id="word" value="宇宙">
+        </div>
+        <button class="test-button" onclick="testSecurityQuestions()">验证安全问题</button>
+        <div class="result" id="security-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>会话管理</h3>
+        <button class="test-button" onclick="testSession()">检查会话状态</button>
+        <button class="test-button" onclick="testProfile()">获取用户资料</button>
+        <button class="test-button" onclick="testPermissions()">检查权限</button>
+        <button class="test-button" onclick="testLogout()">登出</button>
+        <div class="result" id="session-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>令牌管理</h3>
+        <button class="test-button" onclick="testRefreshToken()">刷新令牌</button>
+        <button class="test-button" onclick="showTokens()">显示当前令牌</button>
+        <button class="test-button" onclick="clearTokens()">清除令牌</button>
+        <div class="result" id="token-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>API测试</h3>
+        <button class="test-button" onclick="testAuthenticatedAPI()">测试需要认证的API</button>
+        <button class="test-button" onclick="testUploadPermission()">测试上传权限</button>
+        <div class="result" id="api-result"></div>
+    </div>
+
+    <script src="public/js/config.js"></script>
+    <script src="public/js/authManager.js"></script>
+    <script>
+        let authManager;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // 创建简化的配置对象
+                const config = {
+                    log: (msg) => console.log(`[LOG] ${msg}`),
+                    warn: (msg) => console.warn(`[WARN] ${msg}`),
+                    error: (msg) => console.error(`[ERROR] ${msg}`)
+                };
+                
+                authManager = new AuthManager(config);
+                await authManager.initialize();
+                
+                // 监听认证事件
+                authManager.on('login', (data) => {
+                    log('login-event', `登录成功: ${data.user.displayName}`, 'success');
+                });
+                
+                authManager.on('logout', () => {
+                    log('logout-event', '已登出', 'info');
+                });
+                
+                authManager.on('tokenRefresh', () => {
+                    log('refresh-event', '令牌刷新成功', 'success');
+                });
+                
+                authManager.on('authError', (error) => {
+                    log('error-event', `认证错误: ${error.error}`, 'error');
+                });
+                
+                log('init', '认证管理器初始化完成', 'success');
+                
+                // 显示初始状态
+                updateAuthStatus();
+                
+            } catch (error) {
+                log('init', `初始化失败: ${error.message}`, 'error');
+            }
+        });
+        
+        function log(section, message, type = 'info') {
+            const resultDiv = document.getElementById(section + '-result') || 
+                             document.getElementById('session-result');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            resultDiv.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            resultDiv.scrollTop = resultDiv.scrollHeight;
+        }
+        
+        async function testSecurityQuestions() {
+            const month = document.getElementById('month').value;
+            const nickname = document.getElementById('nickname').value;
+            const word = document.getElementById('word').value;
+            
+            try {
+                log('security', '开始验证安全问题...', 'info');
+                
+                const result = await authManager.verifySecurityQuestions({
+                    month, nickname, word
+                });
+                
+                if (result.success) {
+                    log('security', `验证成功！用户: ${result.data.user.displayName}`, 'success');
+                    updateAuthStatus();
+                } else {
+                    log('security', `验证失败: ${result.message}`, 'error');
+                }
+                
+            } catch (error) {
+                log('security', `验证出错: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testSession() {
+            try {
+                const response = await authManager.authenticatedFetch('/api/auth/session');
+                const result = await response.json();
+                
+                if (result.success) {
+                    log('session', `会话有效: ${JSON.stringify(result.data, null, 2)}`, 'success');
+                } else {
+                    log('session', `会话无效: ${result.message}`, 'error');
+                }
+                
+            } catch (error) {
+                log('session', `检查会话失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testProfile() {
+            try {
+                const profile = await authManager.getUserProfile();
+                log('session', `用户资料: ${JSON.stringify(profile, null, 2)}`, 'success');
+                
+            } catch (error) {
+                log('session', `获取用户资料失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testPermissions() {
+            try {
+                const canView = await authManager.checkPermission('view');
+                const canUpload = await authManager.checkPermission('upload');
+                const canManage = await authManager.checkPermission('manage');
+                
+                log('session', `权限检查:`, 'info');
+                log('session', `  查看: ${canView}`, canView ? 'success' : 'error');
+                log('session', `  上传: ${canUpload}`, canUpload ? 'success' : 'error');
+                log('session', `  管理: ${canManage}`, canManage ? 'success' : 'error');
+                
+            } catch (error) {
+                log('session', `权限检查失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testLogout() {
+            try {
+                await authManager.logout();
+                log('session', '登出成功', 'success');
+                updateAuthStatus();
+                
+            } catch (error) {
+                log('session', `登出失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testRefreshToken() {
+            try {
+                const success = await authManager.refreshToken();
+                log('token', `令牌刷新: ${success ? '成功' : '失败'}`, success ? 'success' : 'error');
+                
+            } catch (error) {
+                log('token', `刷新令牌失败: ${error.message}`, 'error');
+            }
+        }
+        
+        function showTokens() {
+            const status = authManager.getAuthStatus();
+            log('token', `认证状态: ${JSON.stringify(status, null, 2)}`, 'info');
+            
+            if (authManager.tokens) {
+                log('token', `令牌信息:`, 'info');
+                log('token', `  访问令牌: ${authManager.tokens.accessToken ? '存在' : '不存在'}`, 'info');
+                log('token', `  刷新令牌: ${authManager.tokens.refreshToken ? '存在' : '不存在'}`, 'info');
+            }
+        }
+        
+        function clearTokens() {
+            authManager.clearAuthState();
+            log('token', '令牌已清除', 'info');
+            updateAuthStatus();
+        }
+        
+        async function testAuthenticatedAPI() {
+            try {
+                const response = await authManager.authenticatedFetch('/api/photos');
+                const result = await response.json();
+                
+                if (response.ok) {
+                    log('api', `API调用成功: 获取到 ${result.data?.photos?.length || 0} 张照片`, 'success');
+                } else {
+                    log('api', `API调用失败: ${result.message}`, 'error');
+                }
+                
+            } catch (error) {
+                log('api', `API调用出错: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testUploadPermission() {
+            try {
+                const hasPermission = await authManager.checkPermission('upload');
+                log('api', `上传权限: ${hasPermission}`, hasPermission ? 'success' : 'error');
+                
+                if (hasPermission) {
+                    // 测试上传API端点（不实际上传文件）
+                    const response = await authManager.authenticatedFetch('/api/upload/photos', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ test: true })
+                    });
+                    
+                    log('api', `上传API访问: ${response.status} ${response.statusText}`, 
+                        response.status === 400 ? 'info' : 'error'); // 400是预期的，因为没有文件
+                } else {
+                    log('api', '没有上传权限，无法测试上传API', 'warn');
+                }
+                
+            } catch (error) {
+                log('api', `上传权限测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        function updateAuthStatus() {
+            const status = authManager.getAuthStatus();
+            const statusText = status.isAuthenticated ? 
+                `已登录: ${status.user?.displayName}` : '未登录';
+            
+            document.title = `${statusText} - 身份认证测试`;
+            
+            // 更新页面状态指示
+            const indicator = document.getElementById('auth-indicator') || 
+                             (() => {
+                                 const el = document.createElement('div');
+                                 el.id = 'auth-indicator';
+                                 el.style.cssText = `
+                                     position: fixed;
+                                     top: 10px;
+                                     right: 10px;
+                                     padding: 10px;
+                                     border-radius: 5px;
+                                     font-weight: bold;
+                                     z-index: 1000;
+                                 `;
+                                 document.body.appendChild(el);
+                                 return el;
+                             })();
+            
+            indicator.textContent = statusText;
+            indicator.style.background = status.isAuthenticated ? 
+                'rgba(0, 255, 136, 0.8)' : 'rgba(255, 107, 107, 0.8)';
+            indicator.style.color = status.isAuthenticated ? '#000' : '#fff';
+        }
+    </script>
+</body>
+</html>

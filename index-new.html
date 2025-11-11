@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>我们的小宇宙 - 3D照片星球</title>
+    
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="public/css/main.css" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" as="script">
+    
+    <!-- 样式表 -->
+    <link rel="stylesheet" href="public/css/main.css">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- iOS PWA 支持 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="我们的小宇宙">
+    
+    <!-- 预连接到外部资源 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+</head>
+<body>
+    <!-- 星空背景画布 -->
+    <canvas id="stars-canvas"></canvas>
+    
+    <!-- 密码验证界面 -->
+    <div id="password-screen">
+        <div class="password-container">
+            <div class="password-header">
+                <h2>🔐 进入我们的小宇宙</h2>
+                <p>只有懂我们故事的人才能进入哦 💕</p>
+            </div>
+            
+            <div class="password-questions">
+                <div class="question-item">
+                    <label>🌟 我们第一次见面是在哪个月份？</label>
+                    <select id="month-select">
+                        <option value="">选择月份...</option>
+                        <option value="1">一月</option>
+                        <option value="2">二月</option>
+                        <option value="3">三月</option>
+                        <option value="4">四月</option>
+                        <option value="5">五月</option>
+                        <option value="6">六月</option>
+                        <option value="7">七月</option>
+                        <option value="8">八月</option>
+                        <option value="9">九月</option>
+                        <option value="10">十月</option>
+                        <option value="11">十一月</option>
+                        <option value="12">十二月</option>
+                    </select>
+                </div>
+                
+                <div class="question-item">
+                    <label>💝 我们的昵称是什么？</label>
+                    <input type="text" id="nickname-input" placeholder="输入我们的特殊昵称..." maxlength="10">
+                </div>
+                
+                <div class="question-item">
+                    <label>🎵 完成这句话："你是我的..."</label>
+                    <div class="word-options">
+                        <button class="word-btn" data-word="星星">星星</button>
+                        <button class="word-btn" data-word="月亮">月亮</button>
+                        <button class="word-btn" data-word="太阳">太阳</button>
+                        <button class="word-btn" data-word="宇宙">宇宙</button>
+                    </div>
+                    <input type="hidden" id="word-selected" value="">
+                </div>
+            </div>
+            
+            <div class="password-actions">
+                <button id="enter-btn" class="enter-button">
+                    <span>✨ 进入我们的小宇宙 ✨</span>
+                </button>
+                <div class="hint-text">
+                    💡 提示：答案都在我们的回忆里～
+                </div>
+            </div>
+            
+            <div class="love-animation">
+                <div class="floating-heart">💖</div>
+                <div class="floating-heart">💕</div>
+                <div class="floating-heart">💝</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 加载界面 -->
+    <div id="loading-screen">
+        <div class="loading-animation">
+            <div class="loading-heart" style="left: 30px; top: 0;"></div>
+            <div class="loading-heart" style="left: 0; top: 30px;"></div>
+            <div class="loading-heart" style="left: 60px; top: 30px;"></div>
+        </div>
+        <p id="loading-text">正在准备我们的小宇宙...</p>
+        <div id="loading-progress">
+            <div id="progress-bar"></div>
+        </div>
+    </div>
+    
+    <!-- 3D场景容器 -->
+    <div id="canvas-container"></div>
+    
+    <!-- 标题区域 -->
+    <div id="title-container">
+        <h1 id="main-title">
+            <span class="emoji-decoration">🌍</span>
+            <span>我们的小宇宙</span>
+            <span class="emoji-decoration">✨</span>
+        </h1>
+        <div style="margin-top: 10px; font-size: 14px; opacity: 0.8; color: #9bb5ff;">
+            Created by Boning, TJUT 🚀
+        </div>
+    </div>
+    
+    <!-- 统计信息面板 -->
+    <div id="stats-panel">
+        <div class="stat-item">
+            <span class="stat-emoji">📅</span>
+            <span>在一起 <span id="days-count">0</span> 天</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-emoji">📸</span>
+            <span>共 <span id="photo-count">0</span> 张照片</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-emoji">❤️</span>
+            <span>甜蜜指数 <span id="sweet-index">99</span>%</span>
+        </div>
+    </div>
+    
+    <!-- 控制面板 -->
+    <div id="control-panel">
+        <button class="control-btn" id="btn-rotate">
+            <span>🔄</span>
+            <span>自动旋转</span>
+        </button>
+        <button class="control-btn" id="btn-stats">
+            <span>📊</span>
+            <span>统计</span>
+        </button>
+        <button class="control-btn" id="btn-random">
+            <span>🎲</span>
+            <span>随机看看</span>
+        </button>
+        <button class="control-btn" id="btn-mood">
+            <span>🎨</span>
+            <span>换个心情</span>
+        </button>
+        <button class="control-btn" id="btn-light">
+            <span>💡</span>
+            <span>切换光效</span>
+        </button>
+        <button class="control-btn" id="btn-surprise">
+            <span>🎉</span>
+            <span>小惊喜</span>
+        </button>
+    </div>
+    
+    <!-- 照片查看器 -->
+    <div id="photo-viewer">
+        <div id="viewer-close">×</div>
+        <img id="viewer-image" src="" alt="">
+        <div id="viewer-info">
+            <div id="viewer-date"></div>
+            <div id="viewer-caption"></div>
+        </div>
+    </div>
+    
+    <!-- 手势提示 -->
+    <div id="gesture-hint">
+        <div class="hint-icon">👆</div>
+        <div>滑动旋转星球，双指缩放视角</div>
+    </div>
+
+    <!-- 外部依赖库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js"></script>
+    
+    <!-- 应用模块 (按加载顺序) -->
+    <script type="module" src="public/js/config.js"></script>
+    <script type="module" src="public/js/authManager.js"></script>
+    <script type="module" src="public/js/sceneManager.js"></script>
+    <script type="module" src="public/js/lazyLoader.js"></script>
+    <script type="module" src="public/js/performanceManager.js"></script>
+    <script type="module" src="public/js/photoManager.js"></script>
+    <script type="module" src="public/js/debugPanel.js"></script>
+    <script type="module" src="public/js/uploadModal.js"></script>
+    <script type="module" src="public/js/app.js"></script>
+    
+    <!-- 应用启动脚本 -->
+    <script type="module">
+        import PhotoSphereApp from './public/js/app.js';
+        
+        // 应用启动
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                console.log('🌌 启动我们的小宇宙...');
+                
+                // 检查必要的依赖
+                if (typeof THREE === 'undefined') {
+                    throw new Error('Three.js 加载失败');
+                }
+                
+                // 创建并初始化应用
+                const app = new PhotoSphereApp();
+                await app.initialize();
+                
+                // 启动渲染循环
+                app.start();
+                
+                console.log('✨ 我们的小宇宙已准备就绪！');
+                
+            } catch (error) {
+                console.error('💥 应用启动失败:', error);
+                
+                // 显示错误信息
+                const errorEl = document.createElement('div');
+                errorEl.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: #ef4444;
+                    color: white;
+                    padding: 20px;
+                    border-radius: 10px;
+                    text-align: center;
+                    z-index: 9999;
+                    font-family: 'Noto Sans SC', Arial, sans-serif;
+                `;
+                errorEl.innerHTML = `
+                    <h3>💔 初始化失败</h3>
+                    <p>${error.message}</p>
+                    <button onclick="location.reload()" style="
+                        background: white;
+                        color: #ef4444;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 5px;
+                        margin-top: 10px;
+                        cursor: pointer;
+                    ">重新加载</button>
+                `;
+                document.body.appendChild(errorEl);
+            }
+        });
+        
+        // 服务工作器注册 (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+        
+        // 性能监控
+        if (window.performance && window.performance.measure) {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    const perfData = performance.getEntriesByType('navigation')[0];
+                    console.log('⚡ 页面加载性能:', {
+                        domContentLoaded: Math.round(perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart),
+                        pageLoad: Math.round(perfData.loadEventEnd - perfData.loadEventStart),
+                        totalTime: Math.round(perfData.loadEventEnd - perfData.fetchStart)
+                    });
+                }, 0);
+            });
+        }
+        
+        // 全局错误处理
+        window.addEventListener('error', (event) => {
+            console.error('全局错误:', event.error);
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('未处理的Promise拒绝:', event.reason);
+        });
+    </script>
+</body>
+</html>
