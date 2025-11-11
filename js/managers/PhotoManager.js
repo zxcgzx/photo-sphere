@@ -828,6 +828,16 @@ export class PhotoManager {
     }
     
     /**
+     * 获取随机照片
+     */
+    getRandomPhoto() {
+        if (this.photoArray.length === 0) return null;
+        
+        const randomIndex = Math.floor(Math.random() * this.photoArray.length);
+        return this.photoArray[randomIndex];
+    }
+    
+    /**
      * 清理照片系统
      */
     destroy() {

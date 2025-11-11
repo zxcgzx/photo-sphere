@@ -718,6 +718,73 @@ class EternalHeartApp {
     }
     
     /**
+     * 随机视角 - 查看随机照片
+     */
+    randomView() {
+        console.log('[EternalHeartApp] 随机视角...');
+        
+        const randomPhoto = this.managers.photo.getRandomPhoto();
+        if (!randomPhoto) {
+            console.warn('[EternalHeartApp] 没有可用的照片');
+            return;
+        }
+        
+        console.log('[EternalHeartApp] 随机选中的照片:', randomPhoto.id);
+        
+        // 选中照片（触发高亮动画）
+        this.managers.photo.selectPhoto(randomPhoto.id);
+        
+        // 显示提示
+        const title = randomPhoto.metadata?.title || `照片 ${randomPhoto.index + 1}`;
+        this.showNotification(`随机查看：${title} ✨`);
+    }
+    
+    /**
+     * 显示通知
+     */
+    showNotification(message, duration = 3000) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--panel-bg);
+            color: var(--text-color);
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px var(--shadow-color);
+            animation: slideDown 0.3s ease-out;
+            backdrop-filter: blur(10px);
+        `;
+        notification.textContent = message;
+        
+        // 添加动画样式
+        if (!document.getElementById('notification-styles')) {
+            const style = document.createElement('style');
+            style.id = 'notification-styles';
+            style.textContent = `
+                @keyframes slideDown {
+                    from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideDown 0.3s ease-out reverse';
+            setTimeout(() => notification.remove(), 300);
+        }, duration);
+    }
+    
+    /**
      * 销毁应用程序
      */
     destroy() {
